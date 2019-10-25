@@ -19,7 +19,7 @@ namespace ZavodServer.Controllers
         public ObjectDto GetObjectById([FromRoute] Guid id) => db.Objects.First(x => x.Id == id);
 
         [HttpPost("save")]
-        public string CreateObject(ObjectDto objectDto)
+        public string CreateObject([FromBody] ObjectDto objectDto)
         {
             db.Objects.Add(objectDto);
             db.SaveChanges();
