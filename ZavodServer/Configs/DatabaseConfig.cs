@@ -10,24 +10,7 @@ namespace ZavodServer
         
         public string ReadConfig()
         {
-            StreamReader sr;
-            string textConfig;
-            PostgresConfig postgresConfig = null;
-            try
-            {
-                sr = new StreamReader(path);
-                textConfig = sr.ReadToEnd();
-                postgresConfig = JsonSerializer.Deserialize<PostgresConfig>(textConfig);
-            }
-            catch (Exception e)
-            {
-                textConfig = "";
-                Console.WriteLine(e);
-            }
-
-            if (textConfig.Length == 0 || postgresConfig == null)
-                return null;
-            
+            PostgresConfig postgresConfig = JsonSerializer.Deserialize<PostgresConfig>(File.ReadAllText(path));
             return postgresConfig.ToString();
         }
     }

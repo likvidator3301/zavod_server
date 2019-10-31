@@ -21,7 +21,7 @@ namespace ZavodServer.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Guid>> GetUnitsId()
         {
-            var result = db.Units.Select(x => x.Id);
+            IEnumerable<Guid> result = db.Units.Select(x => x.Id);
             if (!result.Any())
                 NotFound("No one units");
             return new ActionResult<IEnumerable<Guid>>(result);
@@ -38,7 +38,7 @@ namespace ZavodServer.Controllers
         {
             if(!db.Units.Select(x => x.Id).Contains(id))
                 return NotFound(id);
-            return new ActionResult<UnitDto>(db.Units.First(x => x.Id == id));
+            return db.Units.First(x => x.Id == id);
         }
 
         /// <summary>
@@ -52,8 +52,8 @@ namespace ZavodServer.Controllers
         {
             if (!db.Units.Select(x => x.Id).Contains(firstUnitId) || !db.Units.Select(x => x.Id).Contains(secondUnitId))
                 return NotFound("Объекты не найдены");
-            return new ActionResult<float>(Vector3.Distance(db.Units.First(x => x.Id == firstUnitId).Position,
-                db.Units.First(x => x.Id == secondUnitId).Position));
+            return Vector3.Distance(db.Units.First(x => x.Id == firstUnitId).Position,
+                db.Units.First(x => x.Id == secondUnitId).Position);
         }
         
         /// <summary>
@@ -66,7 +66,7 @@ namespace ZavodServer.Controllers
         {
             db.Units.Add(unitDto);
             db.SaveChanges();
-            return new ActionResult<UnitDto>(unitDto);
+            return unitDto;
         }
         
         /// <summary>
@@ -86,7 +86,7 @@ namespace ZavodServer.Controllers
             updatingUnit.Rotation = unitDto.Rotation;
             updatingUnit.Type = unitDto.Type;
             db.SaveChanges();
-            return new ActionResult<UnitDto>(updatingUnit);
+            return updatingUnit;
         }
         
         /// <summary>
@@ -101,7 +101,7 @@ namespace ZavodServer.Controllers
             if (!db.Units.Select(x => x.Id).Contains(unitDto.Id))
                 return NotFound(unitDto);
             db.Units.Remove(unitDto);
-            return new ActionResult<UnitDto>(unitDto);
+            return unitDto;
         }
     }
 }
