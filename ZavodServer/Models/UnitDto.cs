@@ -11,21 +11,40 @@ namespace ZavodServer.Models
         public Vector3 Position { get; set; }
         public Vector3 Rotation { get; set; }
         public string Type { get; set; }
-        
+        public float AttackDamage { get; set; }
+        public float AttackDelay { get; set; }
+        public float AttackRange { get; set; }
+        public float Defense { get; set; }
+        public float MoveSpeed { get; set; }
+        public float MaxHp { get; set; }
+        public float CurrentHp { get; set; }
         public override string ToString()
         {
-            return string.Format("Id: {0}, Postion: x: {1} y: {2} z: {3}, Rotation: x: {4} y: {5} z: {6}, Type: {7}", 
-                Id, Position.X, Position.Y, Position.Z, Rotation.X, Rotation.Y, Rotation.Z, Type);
+            return
+                $"Id: {Id}, Position: x: {Position.X} y: {Position.Y} z: {Position.Z}, " +
+                $"Rotation: x: {Rotation.X} y: {Rotation.Y} z: {Rotation.Z}, Type: {Type}";
         }
+
+        public void Copy(UnitDto unitDto)
+        {
+            Id = unitDto.Id;
+            Position = unitDto.Position;
+            Rotation = unitDto.Rotation;
+            Type = unitDto.Type;
+            AttackDamage = unitDto.AttackDamage;
+            AttackDelay = unitDto.AttackDelay;
+            AttackRange = unitDto.AttackRange;
+            Defense = unitDto.Defense;
+            MoveSpeed = unitDto.MoveSpeed;
+            MaxHp = unitDto.MaxHp;
+            CurrentHp = unitDto.CurrentHp;
+        } 
     }
     [ComplexType]
     public class Vector3
     {
-        [Column("X")]
         public float X { get; set; }
-        [Column("Y")]
         public float Y { get; set; }
-        [Column("Z")]
         public float Z { get; set; }
 
         public static float Distance(Vector3 first, Vector3 second)

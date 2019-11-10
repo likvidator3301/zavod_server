@@ -17,15 +17,15 @@ namespace ZavodServer
 
     class PostgresConfig
     {
-        public string host { get; set; }
-        public string port { get; set; }
-        public string database { get; set; }
-        public string userId { get; set; }
-        public string password { get; set; }
+        public string Host { get; set; }
+        public string Port { get; set; }
+        public string Database { get; set; }
+        public string UserId { get; set; }
+        public string Password { get; set; }
         
         public override string ToString()
         {
-            return $"host={host};port={port};database={database};user id={userId};password={password};";
+            return $"host={Host};port={Port};database={Database};user id={UserId};password={Password};";
         }
     }
 }

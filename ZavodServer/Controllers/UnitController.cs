@@ -82,9 +82,7 @@ namespace ZavodServer.Controllers
                 return NotFound(unitDto);
             var updatingUnit = db.Units.First(x => x.Id == unitDto.Id);
             db.Units.Update(updatingUnit);
-            updatingUnit.Position = unitDto.Position;
-            updatingUnit.Rotation = unitDto.Rotation;
-            updatingUnit.Type = unitDto.Type;
+            updatingUnit.Copy(unitDto);
             db.SaveChanges();
             return updatingUnit;
         }
@@ -101,6 +99,7 @@ namespace ZavodServer.Controllers
             if (!db.Units.Select(x => x.Id).Contains(unitDto.Id))
                 return NotFound(unitDto);
             db.Units.Remove(unitDto);
+            db.SaveChanges();
             return unitDto;
         }
     }
