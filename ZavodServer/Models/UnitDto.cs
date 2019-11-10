@@ -18,6 +18,8 @@ namespace ZavodServer.Models
         public float MoveSpeed { get; set; }
         public float MaxHp { get; set; }
         public float CurrentHp { get; set; }
+        public float LastAttackTime { get; set; }
+
         public override string ToString()
         {
             return
@@ -38,6 +40,7 @@ namespace ZavodServer.Models
             MoveSpeed = unitDto.MoveSpeed;
             MaxHp = unitDto.MaxHp;
             CurrentHp = unitDto.CurrentHp;
+            LastAttackTime = unitDto.LastAttackTime;
         } 
     }
     [ComplexType]
