@@ -8,7 +8,9 @@ namespace ZavodServer.Models
     {
         [Key]
         public Guid Id { get; set; }
+        [Column(TypeName = "jsonb")]
         public Vector3 Position { get; set; }
+        [Column(TypeName = "jsonb")]
         public Vector3 Rotation { get; set; }
         public string Type { get; set; }
         public float AttackDamage { get; set; }
@@ -43,7 +45,7 @@ namespace ZavodServer.Models
             LastAttackTime = unitDto.LastAttackTime;
         } 
     }
-    [ComplexType]
+    
     public class Vector3
     {
         public float X { get; set; }

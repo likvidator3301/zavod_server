@@ -19,12 +19,10 @@ namespace ZavodServer.Controllers
         /// <response code="200">Returns all units id</response>
         /// <response code="404">If no units in db</response> 
         [HttpGet]
-        public ActionResult<IEnumerable<Guid>> GetUnitsId()
+        public ActionResult<IEnumerable<UnitDto>> GetUnitsId()
         {
-            IEnumerable<Guid> result = db.Units.Select(x => x.Id);
-            if (!result.Any())
-                NotFound("No one units");
-            return new ActionResult<IEnumerable<Guid>>(result);
+            IEnumerable<UnitDto> result = db.Units.Select(x => x);
+            return new ActionResult<IEnumerable<UnitDto>>(result);
         }
         
         /// <summary>
@@ -100,7 +98,7 @@ namespace ZavodServer.Controllers
                 return NotFound(unitDto);
             db.Units.Remove(unitDto);
             db.SaveChanges();
-            return unitDto;
+            return Ok();
         }
     }
 }
