@@ -19,7 +19,7 @@ namespace ZavodServer.Controllers
         /// <response code="200">Returns all units id</response>
         /// <response code="404">If no units in db</response> 
         [HttpGet]
-        public ActionResult<IEnumerable<UnitDto>> GetUnitsId()
+        public ActionResult<IEnumerable<UnitDto>> GetAll()
         {
             IEnumerable<UnitDto> result = db.Units.Select(x => x);
             return new ActionResult<IEnumerable<UnitDto>>(result);
