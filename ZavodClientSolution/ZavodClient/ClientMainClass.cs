@@ -6,39 +6,40 @@ using System.Threading.Tasks;
 namespace ZavodClient
 {
     
-    public class ClientMainClass
+    public class Units
     {
-        public static HttpClient Client;
-        public static string BaseUrl;
+        private static HttpClient _client;
+        public static string UnitsBaseUrl;
 
-        public ClientMainClass()
+        public Units(string baseUrl)
         {
-            Client = new HttpClient();
-            BaseUrl = Config.BaseUrlUnits;
+            _client = new HttpClient();
+            UnitsBaseUrl = baseUrl + "units/";
         }
 
-        public async Task<Uri> CreateObject(UnitDto objectDto)
+        public async Task<UnitDto> CreateObject(UnitDto objectDto)
         {
-            HttpResponseMessage response = await Client.PostAsJsonAsync(
-                BaseUrl, objectDto);
+            var response = await _client.PostAsJsonAsync(
+                UnitsBaseUrl, objectDto);
             response.EnsureSuccessStatusCode();
-            return response.Headers.Location;
+            UnitDto unitDto = await response.Content.ReadAsAsync<UnitDto>();
+            return unitDto;
+        }
+        
+        public async Task<UnitDto> GetObjectByIdAsync(Guid id)
+        {
+            var response = await _client.GetAsync(UnitsBaseUrl + id.ToString());
+            response.EnsureSuccessStatusCode();
+            UnitDto unitDto = await response.Content.ReadAsAsync<UnitDto>();
+            return unitDto;
         }
 
-        static async Task<UnitDto> GetObjectByIdAsync(Guid id)
+        public async Task<List<Guid>> GetObjectsIds()
         {
-            HttpResponseMessage response = await Client.GetAsync(BaseUrl + id.ToString());
+            var response = await _client.GetAsync(UnitsBaseUrl);
             response.EnsureSuccessStatusCode();
-            UnitDto objectDto = await response.Content.ReadAsAsync<UnitDto>();
-            return objectDto;
-        }
-
-        static async Task<List<Guid>> GetObjectsIds()
-        {
-            HttpResponseMessage response = await Client.GetAsync(BaseUrl);
-            response.EnsureSuccessStatusCode();
-            List<Guid> objectsDto = await response.Content.ReadAsAsync<List<Guid>>();
-            return objectsDto;
+            List<Guid> unitsDto = await response.Content.ReadAsAsync<List<Guid>>();
+            return unitsDto;
         }
     }
 }

@@ -11,6 +11,7 @@ namespace ConsoleAppDebugZavodClient
             var client = new ClientMainClass();
 
             Uri buff = await client.CreateObject(unitDto);
+            
             Console.WriteLine(buff.ToString());
 
 
