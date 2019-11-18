@@ -11,34 +11,59 @@ namespace ZavodClient
         public static HttpClient Client;
         public static string BaseUrl;
 
-        public ClientMainClass()
+        public ClientMainClass(string baseUrl)
         {
             Client = new HttpClient();
-            BaseUrl = Config.BaseUrlUnits;
+            BaseUrl = baseUrl + "/units/";
         }
 
-        public async Task<Uri> CreateObject(UnitDto objectDto)
+        public async Task<UnitDto> CreateUnit(UnitDto objectDto)
         {
-            HttpResponseMessage response = await Client.PostAsJsonAsync(
+            var response = await Client.PostAsJsonAsync(
                 BaseUrl, objectDto);
-            response.EnsureSuccessStatusCode();
-            return response.Headers.Location;
+            var unitDto = await response.Content.ReadAsAsync<UnitDto>();
+            return unitDto;
         }
 
-        static async Task<UnitDto> GetObjectByIdAsync(Guid id)
+        public async Task<UnitDto> GetUnitById(Guid id)
         {
-            HttpResponseMessage response = await Client.GetAsync(BaseUrl + id.ToString());
+            var response = await Client.GetAsync(BaseUrl + id.ToString());
             response.EnsureSuccessStatusCode();
-            UnitDto objectDto = await response.Content.ReadAsAsync<UnitDto>();
+            var objectDto = await response.Content.ReadAsAsync<UnitDto>();
             return objectDto;
         }
 
-        static async Task<List<Guid>> GetObjectsIds()
+        public async Task<List<Guid>> GetUnitsId()
         {
-            HttpResponseMessage response = await Client.GetAsync(BaseUrl);
+            var response = await Client.GetAsync(BaseUrl);
             response.EnsureSuccessStatusCode();
-            List<Guid> objectsDto = await response.Content.ReadAsAsync<List<Guid>>();
+            var objectsDto = await response.Content.ReadAsAsync<List<Guid>>();
             return objectsDto;
+        }
+        
+        public async Task<float> GetDistanceById(Guid firstUnitId, Guid secondUnitId)
+        {
+            var response = await Client.GetAsync(BaseUrl + firstUnitId.ToString() +
+                                                                 '/' + secondUnitId.ToString());
+            response.EnsureSuccessStatusCode();
+            var objectDto = await response.Content.ReadAsAsync<float>();
+            return objectDto;
+        }
+        
+        public async Task<UnitDto> DeleteUnit(Guid id)
+        {
+            var response = await Client.DeleteAsync(BaseUrl + id);
+            response.EnsureSuccessStatusCode();
+            var objectDto = await response.Content.ReadAsAsync<UnitDto>();
+            return objectDto;
+        }
+        
+        public async Task<UnitDto> UpdateUnit(UnitDto unitDto)
+        {
+            var response = await Client.PutAsJsonAsync(BaseUrl, unitDto);
+            response.EnsureSuccessStatusCode();
+            var updateUnitDto = await response.Content.ReadAsAsync<UnitDto>();
+            return updateUnitDto;
         }
     }
 }
