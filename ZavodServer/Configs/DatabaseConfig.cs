@@ -6,7 +6,7 @@ namespace ZavodServer
 {
     public class DatabaseConfig
     {
-        private string path = "configs/postgresConfig.json";
+        private string path = "./Configs/postgresConfig.json";
         
         public string ReadConfig()
         {
