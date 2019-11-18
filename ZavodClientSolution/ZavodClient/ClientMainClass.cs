@@ -25,7 +25,7 @@ namespace ZavodClient
             return unitDto;
         }
 
-        static async Task<UnitDto> GetUnitById(Guid id)
+        public async Task<UnitDto> GetUnitById(Guid id)
         {
             var response = await Client.GetAsync(BaseUrl + id.ToString());
             response.EnsureSuccessStatusCode();
@@ -33,7 +33,7 @@ namespace ZavodClient
             return objectDto;
         }
 
-        static async Task<List<Guid>> GetUnitsId()
+        public async Task<List<Guid>> GetUnitsId()
         {
             var response = await Client.GetAsync(BaseUrl);
             response.EnsureSuccessStatusCode();
@@ -41,7 +41,7 @@ namespace ZavodClient
             return objectsDto;
         }
         
-        static async Task<float> GetDistanceById(Guid firstUnitId, Guid secondUnitId)
+        public async Task<float> GetDistanceById(Guid firstUnitId, Guid secondUnitId)
         {
             var response = await Client.GetAsync(BaseUrl + firstUnitId.ToString() +
                                                                  '/' + secondUnitId.ToString());
@@ -50,7 +50,7 @@ namespace ZavodClient
             return objectDto;
         }
         
-        static async Task<UnitDto> DeleteUnit(Guid id)
+        public async Task<UnitDto> DeleteUnit(Guid id)
         {
             var response = await Client.DeleteAsync(BaseUrl + id);
             response.EnsureSuccessStatusCode();
@@ -58,7 +58,7 @@ namespace ZavodClient
             return objectDto;
         }
         
-        static async Task<UnitDto> UpdateUnit(UnitDto unitDto)
+        public async Task<UnitDto> UpdateUnit(UnitDto unitDto)
         {
             var response = await Client.PutAsJsonAsync(BaseUrl, unitDto);
             response.EnsureSuccessStatusCode();
