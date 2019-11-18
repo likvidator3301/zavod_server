@@ -50,20 +50,20 @@ namespace ZavodClient
             return objectDto;
         }
         
-//        static async Task<UnitDto> DeleteUnit(UnitDto unitDto)
-//        {
-//            var response = await Client.DeleteAsync(BaseUrl);
-//            response.EnsureSuccessStatusCode();
-//            var objectDto = await response.Content.ReadAsAsync<UnitDto>();
-//            return objectDto;
-//        }
+        static async Task<UnitDto> DeleteUnit(Guid id)
+        {
+            var response = await Client.DeleteAsync(BaseUrl + id);
+            response.EnsureSuccessStatusCode();
+            var objectDto = await response.Content.ReadAsAsync<UnitDto>();
+            return objectDto;
+        }
         
-//        static async Task<float> UpdateUnit(UnitDto unitDto)
-//        {
-//            var response = await Client.PutAsync(BaseUrl, unitDto);
-//            response.EnsureSuccessStatusCode();
-//            var objectDto = await response.Content.ReadAsAsync<UnitDto>();
-//            return objectDto;
-//        }
+        static async Task<UnitDto> UpdateUnit(UnitDto unitDto)
+        {
+            var response = await Client.PutAsJsonAsync(BaseUrl, unitDto);
+            response.EnsureSuccessStatusCode();
+            var updateUnitDto = await response.Content.ReadAsAsync<UnitDto>();
+            return updateUnitDto;
+        }
     }
 }
