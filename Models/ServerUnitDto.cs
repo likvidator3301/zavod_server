@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ZavodServer.Models
+namespace Models
 {
-    public class UnitDto
+    public class ServerUnitDto
     {
         [Key]
         public Guid Id { get; set; }
@@ -26,10 +26,13 @@ namespace ZavodServer.Models
         {
             return
                 $"Id: {Id}, Position: x: {Position.X} y: {Position.Y} z: {Position.Z}, " +
-                $"Rotation: x: {Rotation.X} y: {Rotation.Y} z: {Rotation.Z}, Type: {Type}";
+                $"Rotation: x: {Rotation.X} y: {Rotation.Y} z: {Rotation.Z}, Type: {Type}" +
+                $"AttackDamage: {AttackDamage}, AttackDelay: {AttackDelay}, AttackRange: {AttackRange}" +
+                $"Defense: {Defense}, MoveSpeed: {MoveSpeed}, MaxHp: {MaxHp}, CurrentHp: {CurrentHp}" +
+                $"LastAttackTime: {LastAttackTime}";
         }
 
-        public void Copy(UnitDto unitDto)
+        public void Copy(ServerUnitDto unitDto)
         {
             Id = unitDto.Id;
             Position = unitDto.Position;
@@ -57,7 +60,7 @@ namespace ZavodServer.Models
             float num1 = first.X - second.X;
             float num2 = first.Y - second.Y;
             float num3 = first.Z - second.Z;
-            return MathF.Sqrt((float) ((double) num1 * (double) num1 + (double) num2 * (double) num2 + (double) num3 * (double) num3));
+            return (float) Math.Sqrt((float) ((double) num1 * (double) num1 + (double) num2 * (double) num2 + (double) num3 * (double) num3));
         }
     }
 }
