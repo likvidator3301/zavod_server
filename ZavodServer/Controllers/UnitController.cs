@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using ZavodServer.Models;
+using Models;
 
 namespace ZavodServer.Controllers
 {
@@ -19,10 +19,10 @@ namespace ZavodServer.Controllers
         /// <response code="200">Returns all units id</response>
         /// <response code="404">If no units in db</response> 
         [HttpGet]
-        public ActionResult<IEnumerable<UnitDto>> GetAll()
+        public ActionResult<IEnumerable<ServerUnitDto>> GetAll()
         {
-            IEnumerable<UnitDto> result = db.Units.Select(x => x);
-            return new ActionResult<IEnumerable<UnitDto>>(result);
+            IEnumerable<ServerUnitDto> result = db.Units.Select(x => x);
+            return new ActionResult<IEnumerable<ServerUnitDto>>(result);
         }
         
         /// <summary>
@@ -32,7 +32,7 @@ namespace ZavodServer.Controllers
         /// <response code="200">Returns unit with id</response>
         /// <response code="404">If no unit in db</response> 
         [HttpGet("{id}")]
-        public ActionResult<UnitDto> GetUnitById([FromRoute] Guid id)
+        public ActionResult<ServerUnitDto> GetUnitById([FromRoute] Guid id)
         {
             if(!db.Units.Select(x => x.Id).Contains(id))
                 return NotFound(id);
@@ -60,7 +60,7 @@ namespace ZavodServer.Controllers
         /// <returns>Created unit</returns>
         /// <response code="200">Returns created unit</response> 
         [HttpPost]
-        public ActionResult<UnitDto> CreateUnit([FromBody] UnitDto unitDto)
+        public ActionResult<ServerUnitDto> CreateUnit([FromBody] ServerUnitDto unitDto)
         {
             db.Units.Add(unitDto);
             db.SaveChanges();
@@ -74,7 +74,7 @@ namespace ZavodServer.Controllers
         /// <response code="200">Returns updated unit</response> 
         /// <response code="404">If unit not found in db</response> 
         [HttpPut]
-        public ActionResult<UnitDto> UpdateUnit([FromBody] UnitDto unitDto)
+        public ActionResult<ServerUnitDto> UpdateUnit([FromBody] ServerUnitDto unitDto)
         {
             if (!db.Units.Select(x => x.Id).Contains(unitDto.Id))
                 return NotFound(unitDto);
@@ -92,11 +92,11 @@ namespace ZavodServer.Controllers
         /// <response code="200">Returns deleted unit</response> 
         /// <response code="404">If unit not found in db</response> 
         [HttpDelete]
-        public ActionResult<UnitDto> DeleteUnit([FromBody] UnitDto unitDto)
+        public ActionResult<ServerUnitDto> DeleteUnit([FromRoute] Guid id)
         {
-            if (!db.Units.Select(x => x.Id).Contains(unitDto.Id))
-                return NotFound(unitDto);
-            db.Units.Remove(unitDto);
+            if (!db.Units.Select(x => x.Id).Contains(id))
+                return NotFound(id);
+            db.Units.Remove(db.Units.First(x => x.Id == id));
             db.SaveChanges();
             return Ok();
         }

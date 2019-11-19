@@ -1,11 +1,11 @@
+using Models;
 using Microsoft.EntityFrameworkCore;
-using ZavodServer.Models;
 
 namespace ZavodServer
 {
     public class DatabaseContext : DbContext
     {
-        public DbSet<UnitDto> Units { get; set; }
+        public DbSet<ServerUnitDto> Units { get; set; }
         
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
