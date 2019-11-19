@@ -34,7 +34,15 @@ namespace ZavodClient
             CurrentHp = 70;
             LastAttackTime = 3;
         }
-
+        public override string ToString()
+        {
+            return
+                $"Id: {Id}, Position: x: {Position.X} y: {Position.Y} z: {Position.Z}, " +
+                $"Rotation: x: {Rotation.X} y: {Rotation.Y} z: {Rotation.Z}, Type: {Type}, " +
+                $"AttackDamage: {AttackDamage}, AttackDelay: {AttackDelay}, AttackRange: {AttackRange}, " +
+                $"Defense: {Defense}, MoveSpeed: {MoveSpeed}, MaxHp: {MaxHp}, CurrentHp: {CurrentHp}, " +
+                $"LastAttackTime: {LastAttackTime}";
+        }
     }
     public class Vector3
     {

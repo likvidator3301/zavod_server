@@ -34,11 +34,11 @@ namespace ZavodClient
             return objectDto;
         }
 
-        public async Task<List<Guid>> GetUnitsId()
+        public async Task<List<UnitDto>> GetAll()
         {
             var response = await _client.GetAsync(_baseUrl);
             response.EnsureSuccessStatusCode();
-            var objectsDto = await response.Content.ReadAsAsync<List<Guid>>();
+            var objectsDto = await response.Content.ReadAsAsync<List<UnitDto>>();
             return objectsDto;
         }
         

@@ -12,7 +12,7 @@ namespace Models
         public Vector3 Position { get; set; }
         [Column(TypeName = "jsonb")]
         public Vector3 Rotation { get; set; }
-        public string Type { get; set; }
+        public UnitType Type { get; set; }
         public float AttackDamage { get; set; }
         public float AttackDelay { get; set; }
         public float AttackRange { get; set; }
@@ -26,9 +26,9 @@ namespace Models
         {
             return
                 $"Id: {Id}, Position: x: {Position.X} y: {Position.Y} z: {Position.Z}, " +
-                $"Rotation: x: {Rotation.X} y: {Rotation.Y} z: {Rotation.Z}, Type: {Type}" +
-                $"AttackDamage: {AttackDamage}, AttackDelay: {AttackDelay}, AttackRange: {AttackRange}" +
-                $"Defense: {Defense}, MoveSpeed: {MoveSpeed}, MaxHp: {MaxHp}, CurrentHp: {CurrentHp}" +
+                $"Rotation: x: {Rotation.X} y: {Rotation.Y} z: {Rotation.Z}, Type: {Type}, " +
+                $"AttackDamage: {AttackDamage}, AttackDelay: {AttackDelay}, AttackRange: {AttackRange}, " +
+                $"Defense: {Defense}, MoveSpeed: {MoveSpeed}, MaxHp: {MaxHp}, CurrentHp: {CurrentHp}, " +
                 $"LastAttackTime: {LastAttackTime}";
         }
 
