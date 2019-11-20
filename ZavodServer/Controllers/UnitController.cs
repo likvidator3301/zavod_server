@@ -60,8 +60,11 @@ namespace ZavodServer.Controllers
         /// <returns>Created unit</returns>
         /// <response code="200">Returns created unit</response> 
         [HttpPost]
-        public ActionResult<ServerUnitDto> CreateUnit([FromBody] ServerUnitDto unitDto)
+        public ActionResult<ServerUnitDto> CreateUnit([FromBody] UnitType unitType)
         {
+            if(!db.DefaultUnits.Select(x => x.Type).Contains(unitType))
+                return NotFound(unitType);
+            var unitDto = db.DefaultUnits.First(x => x.Type == unitType).UnitDto;
             db.Units.Add(unitDto);
             db.SaveChanges();
             return unitDto;

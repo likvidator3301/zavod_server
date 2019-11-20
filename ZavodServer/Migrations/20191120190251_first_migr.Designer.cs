@@ -11,8 +11,8 @@ using ZavodServer;
 namespace ZavodServer.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20191119151541_first_migration")]
-    partial class first_migration
+    [Migration("20191120190251_first_migr")]
+    partial class first_migr
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -21,6 +21,49 @@ namespace ZavodServer.Migrations
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
                 .HasAnnotation("ProductVersion", "3.1.0-preview3.19554.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            modelBuilder.Entity("Models.DefaultServerUnitDto", b =>
+                {
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<ServerUnitDto>("UnitDto")
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("Type");
+
+                    b.ToTable("DefaultUnits");
+                });
+
+            modelBuilder.Entity("Models.DefaultSeverBuildDto", b =>
+                {
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<ServerBuildingDto>("BuildingDto")
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("Type");
+
+                    b.ToTable("DefaultBuildings");
+                });
+
+            modelBuilder.Entity("Models.ServerBuildingDto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Vector3>("Position")
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Buildings");
+                });
 
             modelBuilder.Entity("Models.ServerUnitDto", b =>
                 {
