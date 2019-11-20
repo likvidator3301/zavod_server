@@ -63,4 +63,11 @@ namespace Models
             return (float) Math.Sqrt((float) ((double) num1 * (double) num1 + (double) num2 * (double) num2 + (double) num3 * (double) num3));
         }
     }
+
+    public class DefaultServerUnitDto
+    {
+        [Key]
+        public UnitType Type { get; set; }
+        [Column(TypeName = "jsonb")] public ServerUnitDto UnitDto { get; set; }
+    }
 }

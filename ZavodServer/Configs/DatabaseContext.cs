@@ -6,6 +6,10 @@ namespace ZavodServer
     public class DatabaseContext : DbContext
     {
         public DbSet<ServerUnitDto> Units { get; set; }
+        public DbSet<DefaultServerUnitDto> DefaultUnits { get; set; }
+        public DbSet<ServerBuildingDto> Buildings { get; set; }
+        public DbSet<DefaultSeverBuildDto> DefaultBuildings { get; set; }
+        
         
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -17,5 +21,6 @@ namespace ZavodServer
 //                optionsBuilder.UseNpgsql(
 //                    "host=localhost;port=5432;database=default;user id=default;password=default;");
         }
+        
     }
 }

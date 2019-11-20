@@ -37,6 +37,8 @@ namespace ZavodServer
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 x.IncludeXmlComments(xmlPath);
             });
+            services.AddAuthentication()
+                .AddGoogle();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
