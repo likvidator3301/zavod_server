@@ -51,8 +51,8 @@ namespace ZavodServer
                 })
                 .AddGoogle(options =>
                 {
-                    options.ClientId = "138111263338-hrbiiasn8gnbjqm4gfv39lmh3c269bng.apps.googleusercontent.com";
-                    options.ClientSecret = "ndj1MeE5qsXSjXswGuNM5oI6";
+                    options.ClientId = authConfig.client_id;
+                    options.ClientSecret = authConfig.client_secret;
                 });
         }
 
