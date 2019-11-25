@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -71,7 +70,7 @@ namespace ClientTests
         
         [TestCase("55db7766-4250-4e27-a351-e5aab980258c")]
         [TestCase("7c4dbe5a-2379-4598-90b0-082c6ce48d4b")]
-        public async Task GetByExistIdTest(string id)
+        public Task GetByExistIdTest(string id)
         {
             var guidId = Guid.Parse(id);
             var answer = unitController.GetUnitById(guidId);
@@ -122,7 +121,7 @@ namespace ClientTests
         }
         
         [Test]
-        public async Task DistanceBetweenOneObjectTest()
+        public Task DistanceBetweenOneObjectTest()
         {
             foreach(var unit in allUnits)
             {
