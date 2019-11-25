@@ -6,12 +6,12 @@ namespace Models
 {
     public class ServerUnitDto
     {
-        [Key]
-        public Guid Id { get; set; }
-        [Column(TypeName = "jsonb")]
-        public Vector3 Position { get; set; }
-        [Column(TypeName = "jsonb")]
-        public Vector3 Rotation { get; set; }
+        [Key] public Guid Id { get; set; }
+
+        [Column(TypeName = "jsonb")] public Vector3 Position { get; set; }
+
+        [Column(TypeName = "jsonb")] public Vector3 Rotation { get; set; }
+
         public UnitType Type { get; set; }
         public float AttackDamage { get; set; }
         public float AttackDelay { get; set; }
@@ -46,9 +46,9 @@ namespace Models
             MaxHp = unitDto.MaxHp;
             CurrentHp = unitDto.CurrentHp;
             LastAttackTime = unitDto.LastAttackTime;
-        } 
+        }
     }
-    
+
     public class Vector3
     {
         public float X { get; set; }
@@ -57,17 +57,16 @@ namespace Models
 
         public static float Distance(Vector3 first, Vector3 second)
         {
-            float num1 = first.X - second.X;
-            float num2 = first.Y - second.Y;
-            float num3 = first.Z - second.Z;
-            return (float) Math.Sqrt((float) ((double) num1 * (double) num1 + (double) num2 * (double) num2 + (double) num3 * (double) num3));
+            var num1 = first.X - second.X;
+            var num2 = first.Y - second.Y;
+            var num3 = first.Z - second.Z;
+            return (float) Math.Sqrt(num1 * num1 + num2 * num2 + num3 * num3);
         }
     }
 
     public class DefaultServerUnitDto
     {
-        [Key]
-        public UnitType Type { get; set; }
+        [Key] public UnitType Type { get; set; }
         [Column(TypeName = "jsonb")] public ServerUnitDto UnitDto { get; set; }
     }
 }

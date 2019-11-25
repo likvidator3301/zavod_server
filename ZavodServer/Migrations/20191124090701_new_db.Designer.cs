@@ -11,8 +11,8 @@ using ZavodServer;
 namespace ZavodServer.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20191120190251_first_migr")]
-    partial class first_migr
+    [Migration("20191124090701_new_db")]
+    partial class new_db
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
