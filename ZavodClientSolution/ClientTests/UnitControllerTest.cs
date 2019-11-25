@@ -17,14 +17,14 @@ namespace ClientTests
     [TestFixture]
     public class UnitControllerTest
     {
-        private ClientMainClass client;
+        private Units client;
         private List<UnitDto> allUnits;
         private List<UnitDto> defaultUnits;
         [OneTimeSetUp]
         public void StartServer()
         {
             defaultUnits = new List<UnitDto>();
-            client = new ClientMainClass("http://localhost:5000");
+            client = new Units("http://localhost:5000");
             Host.CreateDefaultBuilder()
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup(typeof(Startup)); }).Build().RunAsync();
             defaultUnits.Add(new UnitDto
