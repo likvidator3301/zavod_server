@@ -1,5 +1,5 @@
-using Models;
 using Microsoft.EntityFrameworkCore;
+using Models;
 
 namespace ZavodServer
 {
@@ -9,11 +9,11 @@ namespace ZavodServer
         public DbSet<DefaultServerUnitDto> DefaultUnits { get; set; }
         public DbSet<ServerBuildingDto> Buildings { get; set; }
         public DbSet<DefaultSeverBuildDto> DefaultBuildings { get; set; }
-        
-        
+
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            DatabaseConfig dbConfig = new DatabaseConfig();
+            var dbConfig = new DatabaseConfig();
             var config = dbConfig.ReadConfig();
             if (config != null)
                 optionsBuilder.UseNpgsql(config);
@@ -21,6 +21,5 @@ namespace ZavodServer
 //                optionsBuilder.UseNpgsql(
 //                    "host=localhost;port=5432;database=default;user id=default;password=default;");
         }
-        
     }
 }
