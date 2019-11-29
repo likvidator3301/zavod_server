@@ -118,9 +118,9 @@ namespace ZavodServer.Controllers
         /// </param>
         /// <returns></returns>
         [HttpPatch("attack")]
-        public ActionResult<IEnumerable<Guid>> AttackUnit([FromBody] params AttackUnitDto[] unitAttacks)
+        public ActionResult<IEnumerable<ResultOfAttackDto>> AttackUnit([FromBody] params AttackUnitDto[] unitAttacks)
         {
-            List<Guid> errorAttack = new List<Guid>();
+            List<ResultOfAttackDto> attackResult = new List<ResultOfAttackDto>();
             //Уверен что эо плохая идея, но ничего лучше пока не придумал
             foreach (var unitAttack in unitAttacks)
             {
@@ -128,15 +128,15 @@ namespace ZavodServer.Controllers
                 var defence = db.Units.First(x => x.Id == unitAttack.Defence);
                 if (Vector3.Distance(attack.Position, defence.Position) > 1)
                 {
-                    errorAttack.Add(attack.Id);
-                    errorAttack.Add(defence.Id);
+                    attackResult.Add(new ResultOfAttackDto{Id = defence.Id, Flag = false, Hp = defence.CurrentHp});
                     continue;
                 }
                 db.Units.Update(defence);
                 defence.CurrentHp -= attack.AttackDamage;
+                attackResult.Add(new ResultOfAttackDto{Id = defence.Id, Flag = true, Hp = defence.CurrentHp});
                 db.SaveChanges();
             }
-            return errorAttack;
+            return attackResult;
         }
         
         /// <summary>
@@ -147,7 +147,7 @@ namespace ZavodServer.Controllers
         [HttpPatch("move")]
         public ActionResult<IEnumerable<MoveUnitDto>> MoveUnit([FromBody] params MoveUnitDto[] moveUnits)
         {
-            List<MoveUnitDto> errorMove = new List<MoveUnitDto>();
+            List<MoveUnitDto> badMoveResult = new List<MoveUnitDto>();
             //Уверен что эо плохая идея, но ничего лучше пока не придумал
             foreach (var movingUnit in moveUnits)
             {
@@ -156,14 +156,14 @@ namespace ZavodServer.Controllers
                 var newPosition = movingUnit.NewPosition;
                 if (Vector3.Distance(movesUnit.Position, newPosition) > 20)
                 {
-                    errorMove.Add(new MoveUnitDto{Id = movesUnit.Id, NewPosition = oldPosition});
+                    badMoveResult.Add(new MoveUnitDto{Id = movesUnit.Id, NewPosition = oldPosition});
                     continue;
                 }
                 db.Units.Update(movesUnit);
                 movesUnit.Position = newPosition;
                 db.SaveChanges();
             }
-            return errorMove;
+            return badMoveResult;
         }
 
 //        [HttpPost("CreateSome")]
