@@ -1,11 +1,17 @@
-﻿using System;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Models;
 
-namespace Models
+namespace ZavodServer.Models
 {
-    public class ServerUnitDto
+    public class UnitDb
     {
+        [Key] 
         public Guid Id { get; set; }
+        [Column(TypeName = "jsonb")] 
         public Vector3 Position { get; set; }
+        [Column(TypeName = "jsonb")] 
         public Vector3 Rotation { get; set; }
         public UnitType Type { get; set; }
         public float AttackDamage { get; set; }
@@ -27,7 +33,7 @@ namespace Models
                 $"LastAttackTime: {LastAttackTime}";
         }
 
-        public void Copy(ServerUnitDto unitDto)
+        public void Copy(UnitDb unitDto)
         {
             Id = unitDto.Id;
             Position = unitDto.Position;
@@ -44,9 +50,11 @@ namespace Models
         }
     }
 
-    public class DefaultServerUnitDto
+    public class DefaultUnitDb
     {
-       public UnitType Type { get; set; }
-       public ServerUnitDto UnitDto { get; set; }
+        [Key] 
+        public UnitType Type { get; set; }
+        [Column(TypeName = "jsonb")] 
+        public UnitDb UnitDto { get; set; }
     }
 }

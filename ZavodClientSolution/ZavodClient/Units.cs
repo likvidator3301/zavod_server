@@ -3,42 +3,43 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Models;
 
 namespace ZavodClient
 {
     
-    public class ClientMainClass
+    public class Units
     {
         private static HttpClient _client;
         private static string _baseUrl;
 
-        public ClientMainClass(string baseUrl)
+        public Units(string baseUrl)
         {
             _client = new HttpClient();
             _baseUrl = baseUrl + "/units/";
         }
 
-        public async Task<UnitDto> CreateUnit(UnitDto objectDto)
+        public async Task<ServerUnitDto> CreateUnit(UnitType unitType, Vector3 position)
         {
             var response = await _client.PostAsJsonAsync(
-                _baseUrl, objectDto);
-            var unitDto = await response.Content.ReadAsAsync<UnitDto>();
-            return unitDto;
-        }
-
-        public async Task<UnitDto> GetUnitById(Guid id)
-        {
-            var response = await _client.GetAsync($"{_baseUrl}{id.ToString()}");
-            response.EnsureSuccessStatusCode();
-            var objectDto = await response.Content.ReadAsAsync<UnitDto>();
+                _baseUrl, new CreateUnitDto{UnitType = unitType, Position = position});
+            var objectDto = await response.Content.ReadAsAsync<ServerUnitDto>();
             return objectDto;
         }
 
-        public async Task<List<Guid>> GetUnitsId()
+        public async Task<ServerUnitDto> GetUnitById(Guid id)
+        {
+            var response = await _client.GetAsync($"{_baseUrl}{id.ToString()}");
+            response.EnsureSuccessStatusCode();
+            var objectDto = await response.Content.ReadAsAsync<ServerUnitDto>();
+            return objectDto;
+        }
+
+        public async Task<List<ServerUnitDto>> GetAll()
         {
             var response = await _client.GetAsync(_baseUrl);
             response.EnsureSuccessStatusCode();
-            var objectsDto = await response.Content.ReadAsAsync<List<Guid>>();
+            var objectsDto = await response.Content.ReadAsAsync<List<ServerUnitDto>>();
             return objectsDto;
         }
         
@@ -57,12 +58,12 @@ namespace ZavodClient
             return HttpStatusCode.OK;
         }
         
-        public async Task<UnitDto> UpdateUnit(UnitDto unitDto)
+        public async Task<ServerUnitDto> UpdateUnit(ServerUnitDto unitDto)
         {
             var response = await _client.PutAsJsonAsync(_baseUrl, unitDto);
             response.EnsureSuccessStatusCode();
-            var updateUnitDto = await response.Content.ReadAsAsync<UnitDto>();
-            return updateUnitDto;
+            var updateObjectDto = await response.Content.ReadAsAsync<ServerUnitDto>();
+            return updateObjectDto;
         }
     }
 }
