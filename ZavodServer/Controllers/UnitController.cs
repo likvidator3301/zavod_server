@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ZavodServer.Models;
 using Models;
 
 namespace ZavodServer.Controllers
@@ -22,10 +23,10 @@ namespace ZavodServer.Controllers
         /// <response code="200">Returns all units id</response>
         /// <response code="404">If no units in db</response>
         [HttpGet]
-        public ActionResult<IEnumerable<ServerUnitDto>> GetAll()
+        public ActionResult<IEnumerable<UnitDb>> GetAll()
         {
-            IEnumerable<ServerUnitDto> result = db.Units.Select(x => x);
-            return new ActionResult<IEnumerable<ServerUnitDto>>(result);
+            IEnumerable<UnitDb> result = db.Units.Select(x => x);
+            return new ActionResult<IEnumerable<UnitDb>>(result);
         }
 
         /// <summary>
@@ -35,7 +36,7 @@ namespace ZavodServer.Controllers
         /// <response code="200">Returns unit with id</response>
         /// <response code="404">If no unit in db</response>
         [HttpGet("{id}")]
-        public ActionResult<ServerUnitDto> GetUnitById([FromRoute] Guid id)
+        public ActionResult<UnitDb> GetUnitById([FromRoute] Guid id)
         {
             if (!db.Units.Select(x => x.Id).Contains(id))
                 return NotFound(id);
@@ -63,11 +64,13 @@ namespace ZavodServer.Controllers
         /// <returns>Created unit</returns>
         /// <response code="200">Returns created unit</response>
         [HttpPost]
-        public ActionResult<ServerUnitDto> CreateUnit([FromBody] UnitType unitType)
+        public ActionResult<UnitDb> CreateUnit([FromBody] CreateUnitDto createUnit)
         {
-            if (!db.DefaultUnits.Select(x => x.Type).Contains(unitType))
-                return NotFound(unitType);
-            var unitDto = db.DefaultUnits.First(x => x.Type == unitType).UnitDto;
+            if (!db.DefaultUnits.Select(x => x.Type).Contains(createUnit.UnitType))
+                return NotFound(createUnit.UnitType);
+            var unitDto = db.DefaultUnits.First(x => x.Type == createUnit.UnitType).UnitDto;
+            unitDto.Id = Guid.NewGuid();
+            unitDto.Position = new Vector3(createUnit.Position.X, createUnit.Position.Y, createUnit.Position.Z);
             db.Units.Add(unitDto);
             db.SaveChanges();
             return unitDto;
@@ -80,7 +83,7 @@ namespace ZavodServer.Controllers
         /// <response code="200">Returns updated unit</response>
         /// <response code="404">If unit not found in db</response>
         [HttpPut]
-        public ActionResult<ServerUnitDto> UpdateUnit([FromBody] ServerUnitDto unitDto)
+        public ActionResult<UnitDb> UpdateUnit([FromBody] UnitDb unitDto)
         {
             if (!db.Units.Select(x => x.Id).Contains(unitDto.Id))
                 return NotFound(unitDto);
@@ -98,7 +101,7 @@ namespace ZavodServer.Controllers
         /// <response code="200">Returns deleted unit</response>
         /// <response code="404">If unit not found in db</response>
         [HttpDelete]
-        public ActionResult<ServerUnitDto> DeleteUnit([FromRoute] Guid id)
+        public ActionResult<UnitDb> DeleteUnit([FromRoute] Guid id)
         {
             if (!db.Units.Select(x => x.Id).Contains(id))
                 return NotFound(id);
@@ -114,7 +117,7 @@ namespace ZavodServer.Controllers
         ///    Массив пар id атакующего и атакуемого
         /// </param>
         /// <returns></returns>
-        [HttpPut("attack")]
+        [HttpPatch("attack")]
         public ActionResult<IEnumerable<Guid>> AttackUnit([FromBody] params AttackUnitDto[] unitAttacks)
         {
             List<Guid> errorAttack = new List<Guid>();
@@ -141,7 +144,7 @@ namespace ZavodServer.Controllers
         /// </summary>
         /// <param name="moveUnits"></param>
         /// <returns></returns>
-        [HttpPut("move")]
+        [HttpPatch("move")]
         public ActionResult<IEnumerable<MoveUnitDto>> MoveUnit([FromBody] params MoveUnitDto[] moveUnits)
         {
             List<MoveUnitDto> errorMove = new List<MoveUnitDto>();
@@ -149,16 +152,27 @@ namespace ZavodServer.Controllers
             foreach (var movingUnit in moveUnits)
             {
                 var movesUnit = db.Units.First(x => x.Id == movingUnit.Id);
-                if (Vector3.Distance(movesUnit.Position, movingUnit.NewPosition) > 1)
+                var oldPosition = movesUnit.Position;
+                var newPosition = movingUnit.NewPosition;
+                if (Vector3.Distance(movesUnit.Position, newPosition) > 20)
                 {
-                    errorMove.Add(new MoveUnitDto{Id = movesUnit.Id, NewPosition = movesUnit.Position});
+                    errorMove.Add(new MoveUnitDto{Id = movesUnit.Id, NewPosition = oldPosition});
                     continue;
                 }
                 db.Units.Update(movesUnit);
-                movesUnit.Position = movingUnit.NewPosition;
+                movesUnit.Position = newPosition;
                 db.SaveChanges();
             }
             return errorMove;
         }
+
+//        [HttpPost("CreateSome")]
+//        public ActionResult<string> CreateSomeUnits([FromBody] UnitDb unitDb)
+//        {
+//            unitDb.Type = UnitType.Warrior;
+//            db.DefaultUnits.Add(new DefaultUnitDb {Type = unitDb.Type, UnitDto = unitDb});
+//            db.SaveChanges();
+//            return db.DefaultUnits.First().UnitDto.ToString();
+//        }
     }
 }

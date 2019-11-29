@@ -19,10 +19,10 @@ namespace ZavodClient
             _baseUrl = baseUrl + "/units/";
         }
 
-        public async Task<ServerUnitDto> CreateUnit(ServerUnitDto unitDto)
+        public async Task<ServerUnitDto> CreateUnit(UnitType unitType, Vector3 position)
         {
             var response = await _client.PostAsJsonAsync(
-                _baseUrl, unitDto);
+                _baseUrl, new CreateUnitDto{UnitType = unitType, Position = position});
             var objectDto = await response.Content.ReadAsAsync<ServerUnitDto>();
             return objectDto;
         }

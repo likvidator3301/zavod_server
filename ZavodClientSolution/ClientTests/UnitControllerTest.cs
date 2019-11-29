@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Models;
 using NUnit.Framework;
 using ZavodClient;
 using ZavodServer;
@@ -18,49 +19,21 @@ namespace ClientTests
     public class UnitControllerTest
     {
         private Units client;
-        private List<UnitDto> allUnits;
-        private List<UnitDto> defaultUnits;
+        private List<ServerUnitDto> allUnits;
         [OneTimeSetUp]
-        public void StartServer()
+        public async Task StartServer()
         {
-            defaultUnits = new List<UnitDto>();
             client = new Units("http://localhost:5000");
             Host.CreateDefaultBuilder()
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup(typeof(Startup)); }).Build().RunAsync();
-            defaultUnits.Add(new UnitDto
-            {
-                Id = Guid.Parse("55db7766-4250-4e27-a351-e5aab980258c"), 
-                Position = new Vector3{X = 0, Y= 0,Z=0},
-                Rotation = new Vector3{X = 0, Y= 0,Z=0},
-                AttackDamage = 100,
-                AttackDelay = 1,
-                AttackRange = 2,
-                CurrentHp = 100,
-                Defense = 25,
-                LastAttackTime = 3,
-                MaxHp = 150,
-                Type = "4elik"
-            }); 
-            defaultUnits.Add(new UnitDto
-            {
-                Id = Guid.Parse("7c4dbe5a-2379-4598-90b0-082c6ce48d4b"), 
-                Position = new Vector3{X = 0, Y = 1, Z = 2},
-                Rotation = new Vector3{X = 10, Y = 10, Z = 10},
-                AttackDamage = 150,
-                AttackDelay = 3,
-                AttackRange = 1,
-                CurrentHp = 150,
-                Defense = 25,
-                LastAttackTime = 3,
-                MaxHp = 200,
-                Type = "warrior"
-            });
+            allUnits = await client.GetAll();
         }
         
-        [OneTimeSetUp]
-        public async Task GetAll()
+        [Test]
+        public async Task CreateUnits()
         {
-            allUnits = await client.GetAll();
+            var result = await client.CreateUnit(UnitType.Warrior, new Vector3{X =15, Y = 25,Z = 10});
+            result.Should().NotBeNull();
         }
         
         [Test]
@@ -70,27 +43,31 @@ namespace ClientTests
             list.Should().NotBeEmpty();
         }
         
-        [TestCase("55db7766-4250-4e27-a351-e5aab980258c")]
-        [TestCase("7c4dbe5a-2379-4598-90b0-082c6ce48d4b")]
-        public async Task GetByExistIdTest(string id)
+        [Test]
+        public async Task GetByExistIdTest()
         {
-            var guidId = Guid.Parse(id);
-            var answer = await client.GetUnitById(guidId);
-            Assert.IsTrue(allUnits.Select(x => x).Where(x => x.Id == answer.Id).Count() > 0);
+            foreach (var unit in allUnits)
+            {
+                var answer = await client.GetUnitById(unit.Id);
+                allUnits.Where(x => x.Id == answer.Id).Count().Should().BeGreaterThan(0);
+            }
         }
         
-        [TestCase("b066bb09-c9c9-49c2-be41-571602813f86")]
-        [TestCase("693f731b-954b-44ea-a9c2-56c37d3c40bd")]
-        public void GetByNotExistIdTest(string id)
+        [Test]
+        public void GetByNotExistIdTest()
         {
-            var guidId = Guid.Parse(id);
-            Assert.ThrowsAsync<HttpRequestException>(()=> client.GetUnitById(guidId));
+            for (int i = 0; i < 15; i++)
+            {
+                var guidId = Guid.NewGuid();
+                Func<Task> gettingUnit = async () => await client.GetUnitById(guidId);
+                gettingUnit.Should().ThrowAsync<HttpRequestException>();
+            }
         }
         
         [Test]
         public async Task UpdateExistTest()
         {
-            foreach (var unit in defaultUnits)
+            foreach (var unit in allUnits)
             {
                 unit.AttackDamage++;
                 unit.CurrentHp -= 10;
@@ -99,28 +76,28 @@ namespace ClientTests
             }
         }
 
-        [Test]
-        public async Task AddUnitTest()
-        {
-            foreach(var unit in defaultUnits)
-            {
-                unit.Id = Guid.NewGuid();
-                var result = await client.CreateUnit(unit);
-                result.Should().BeEquivalentTo(unit);
-            }
-        }
+//        [Test]
+//        public async Task AddUnitTest()
+//        {
+//            foreach(var unit in defaultUnits)
+//            {
+////                unit.Id = Guid.NewGuid();
+//                var result = await client.CreateUnit(UnitType.Warrior);
+////                result.Should().BeEquivalentTo(unit);
+//            }
+//        }
 
-        [Test]
-        public async Task DeleteUnitTest()
-        {
-            foreach(var unit in allUnits)
-            {
-                var result = await client.DeleteUnit(unit.Id);
-                result.Should().BeEquivalentTo(HttpStatusCode.OK);
-                allUnits.RemoveAt(0);
-                return;
-            }
-        }
+//        [Test]
+//        public async Task DeleteUnitTest()
+//        {
+//            foreach(var unit in allUnits)
+//            {
+//                var result = await client.DeleteUnit(unit.Id);
+//                result.Should().BeEquivalentTo(HttpStatusCode.OK);
+//                allUnits.RemoveAt(0);
+//                return;
+//            }
+//        }
         
         [Test]
         public async Task DistanceBetweenOneObjectTest()

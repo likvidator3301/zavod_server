@@ -1,14 +1,18 @@
+using System;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Models;
+using ZavodServer.Models;
 
 namespace ZavodServer
 {
     public class DatabaseContext : DbContext
     {
-        public DbSet<ServerUnitDto> Units { get; set; }
-        public DbSet<DefaultServerUnitDto> DefaultUnits { get; set; }
-        public DbSet<ServerBuildingDto> Buildings { get; set; }
-        public DbSet<DefaultSeverBuildDto> DefaultBuildings { get; set; }
+        public DbSet<UnitDb> Units { get; set; }
+        public DbSet<DefaultUnitDb> DefaultUnits { get; set; }
+        public DbSet<BuildingDb> Buildings { get; set; }
+        public DbSet<DefaultBuildingDb> DefaultBuildings { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

@@ -1,16 +1,15 @@
 using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Numerics;
 
 namespace Models
 {
     public class ServerBuildingDto
     {
-        [Key] public Guid Id { get; set; }
+        public Guid Id { get; set; }
 
         public BuildingType Type { get; set; }
 
-        [Column(TypeName = "jsonb")] public Vector3 Position { get; set; }
+        public Vector3 Position { get; set; }
 
         public override string ToString()
         {
@@ -20,8 +19,8 @@ namespace Models
 
     public class DefaultSeverBuildDto
     {
-        [Key] public BuildingType Type { get; set; }
+         public BuildingType Type { get; set; }
 
-        [Column(TypeName = "jsonb")] public ServerBuildingDto BuildingDto { get; set; }
+        public ServerBuildingDto BuildingDto { get; set; }
     }
 }

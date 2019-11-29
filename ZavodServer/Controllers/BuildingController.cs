@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Models;
+using ZavodServer.Models;
 
 namespace ZavodServer.Controllers
 {
@@ -20,7 +21,7 @@ namespace ZavodServer.Controllers
         /// <param name="buildingType">
         /// Тип создаваемого здания</param>
         /// <returns></returns>
-        public ActionResult<ServerBuildingDto> CreateBuilding([FromBody] BuildingType buildingType)
+        public ActionResult<BuildingDb> CreateBuilding([FromBody] BuildingType buildingType)
         {
             if (!db.DefaultBuildings.Select(x => x.Type).Contains(buildingType))
                 return NotFound(buildingType);
@@ -37,7 +38,7 @@ namespace ZavodServer.Controllers
         /// Гуид здания</param>
         /// <returns></returns>
         [HttpDelete]
-        public ActionResult<ServerUnitDto> DeleteBuilding([FromRoute] Guid id)
+        public ActionResult<BuildingDb> DeleteBuilding([FromRoute] Guid id)
         {
             if (!db.Buildings.Select(x => x.Id).Contains(id))
                 return NotFound(id);

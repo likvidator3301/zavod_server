@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Models;
+using ZavodServer.Models;
 
 namespace ZavodServer
 {
@@ -40,7 +41,6 @@ namespace ZavodServer
             });
             services.Configure<IdentityOptions>(options =>
             {
-                // Default SignIn settings.
                 options.SignIn.RequireConfirmedEmail = false;
                 options.SignIn.RequireConfirmedPhoneNumber = false;
             });
@@ -51,8 +51,8 @@ namespace ZavodServer
                 })
                 .AddGoogle(options =>
                 {
-                    options.ClientId = authConfig.client_id;
-                    options.ClientSecret = authConfig.client_secret;
+                    options.ClientId = authConfig.ReadConfig().client_id;
+                    options.ClientSecret = authConfig.ReadConfig().client_secret;
                 });
         }
 

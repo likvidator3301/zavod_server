@@ -1,10 +1,10 @@
 using System.Linq;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Models;
+using Microsoft.Owin.Security;
+using ZavodServer.Models;
+using AuthenticationProperties = Microsoft.AspNetCore.Authentication.AuthenticationProperties;
 
 namespace ZavodServer.Controllers
 {
@@ -15,8 +15,13 @@ namespace ZavodServer.Controllers
     public class AuthController : Controller
     {
         private readonly DatabaseContext db = new DatabaseContext();
-        private readonly SignInManager<ServerUserDto> signInManager;
+        private readonly SignInManager<UserDb> signInManager;
 
+        public AuthController(SignInManager<UserDb> regManager)
+        {
+            signInManager = regManager;
+        }
+        
         [HttpGet("login")]
         public ActionResult Login(string returnUrl ="/")
         {
@@ -26,6 +31,7 @@ namespace ZavodServer.Controllers
        [HttpGet("signin-google")]
         public ActionResult LoginCallback()
         {
+            var newUser = signInManager.GetExternalLoginInfoAsync();
             return Ok("Tut 4to-to napisano: "+User.Identities.First().IsAuthenticated);
         }
     }
