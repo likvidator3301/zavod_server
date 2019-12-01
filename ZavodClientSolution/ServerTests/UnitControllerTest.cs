@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
@@ -56,21 +57,21 @@ namespace ClientTests
         }
         
         [OneTimeSetUp]
-        public Task GetAll()
+        public void GetAll()
         {
-            allUnits = unitController.GetAll().ToList<ServerUnitDto>();
+            allUnits = unitController.GetAll().Value.ToList();
         }
         
         [Test]
-        public Task GetAllTest()
+        public void GetAllTest()
         {
-            var list = unitController.GetAll();
+            var list = unitController.GetAll().Value;
             list.Should().NotBeEmpty();
         }
         
         [TestCase("55db7766-4250-4e27-a351-e5aab980258c")]
         [TestCase("7c4dbe5a-2379-4598-90b0-082c6ce48d4b")]
-        public Task GetByExistIdTest(string id)
+        public void GetByExistIdTest(string id)
         {
             var guidId = Guid.Parse(id);
             var answer = unitController.GetUnitById(guidId);
