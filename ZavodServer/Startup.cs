@@ -80,8 +80,9 @@ namespace ZavodServer
                 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            
             app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
