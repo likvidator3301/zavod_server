@@ -10,7 +10,7 @@ namespace ZavodServer.Controllers
 {
     [Produces("application/json")]
     [ApiController]
-//    [Authorize]
+    [Authorize]
     [Route("units")]
     public class UnitController : ControllerBase
     {
@@ -25,6 +25,8 @@ namespace ZavodServer.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<UnitDb>> GetAll()
         {
+//            if (!User.Identity.IsAuthenticated)
+//                return BadRequest();
             IEnumerable<UnitDb> result = db.Units.Select(x => x);
             return new ActionResult<IEnumerable<UnitDb>>(result);
         }

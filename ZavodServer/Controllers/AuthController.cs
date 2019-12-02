@@ -1,47 +1,56 @@
+using System;
 using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Owin.Security;
 using ZavodServer.Models;
-using AuthenticationProperties = Microsoft.AspNetCore.Authentication.AuthenticationProperties;
 
 namespace ZavodServer.Controllers
 {
     [Produces("application/json")]
     [ApiController]
-//    [AllowAnonymous]
+    [AllowAnonymous]
     [Route("/")]
+//    [Authorize]
     public class AuthController : Controller
     {
         private readonly DatabaseContext db = new DatabaseContext();
-        private readonly SignInManager<UserDb> signInManager;
-
-        public AuthController(SignInManager<UserDb> regManager)
+        private SignInManager<IdentityUser> signInManager;
+        private UserManager<IdentityUser> userManager;
+        
+        public AuthController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
         {
-            signInManager = regManager;
+            this.signInManager = signInManager;
+            this.userManager = userManager;
         }
         
         [HttpGet("login")]
-        public ActionResult Login(string returnUrl ="/")
+        public ActionResult Login(string returnUrl ="/LoginCallback")
         {
-            return new ChallengeResult(new AuthenticationProperties {RedirectUri = returnUrl});
+            var authProp = signInManager.ConfigureExternalAuthenticationProperties("Google",
+                Url.Action("LoginCallback", "Auth", null, Request.Scheme));
+            return Challenge(authProp);
         }
 
-       [HttpGet("signin-google")]
-        public ActionResult LoginCallback()
+        [HttpGet("LoginCallback")]
+        public async Task<ActionResult> LoginCallback()
         {
-            var newUser = signInManager.GetExternalLoginInfoAsync();
-            return Ok("Tut 4to-to napisano: "+User.Identities.First().IsAuthenticated);
+//            var info = await signInManager.GetExternalLoginInfoAsync();
+//            var result = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+            var email = User.Claims.First(x => x.Type == ClaimTypes.Email).Value;
+            var name = User.Identity.Name.Trim();
+            var user = new IdentityUser {Email = email, UserName = name, Id = Guid.NewGuid().ToString()};
+            var result = await userManager.CreateAsync(user);
+            if (result.Succeeded)
+            {
+                // установка куки
+                await signInManager.SignInAsync(user, false);
+                return RedirectToAction("GetAll", "Unit");
+            }
+            return Ok(email);
         }
     }
-    /*
-     * http://localhost:5000/auth/googleCallback
-     * ?state=CfDJ8IGASaB2OJhNiYicgRiEXj88dmjXadrbBNO_MvWxxnjJgnrW0shz1Hus4Rdxogb69fposJt1xEy5EbPnOd-gpoq3brIJdIr5HZSYu5u8kDWAmTed-8LmbDVdekjb5d4TBRQNuInVcC8PeT5kO3dua84fLwQ7kovmQ4LIQiwu7JdPCprxOYIJ4RuHJGfmTAWbttzOAY7t6152-04T9xbS4aI
-     * &code=4%2FtgHEfX8-TEVWEhnZezJF83WPfSCzbJ_mfRMe437LABt9IpaphMCZd9Z8QyyXUk9h-SgafuIcsp-PEPZGBDN8qIE
-     * &scope=email+profile+openid+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email
-     * &authuser=0
-     * &session_state=ab82c89f2feb6f6c577f42901c19d403b121bd60..3ced
-     * &prompt=consent#
-     */
 }
