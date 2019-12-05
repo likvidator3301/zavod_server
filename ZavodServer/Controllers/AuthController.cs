@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -45,7 +46,7 @@ namespace ZavodServer.Controllers
             var user = db.Users.FirstOrDefault(x => x.Email.ToLower().Equals(email.ToLower()));
             if (user != null)
                 return user;
-            user = new UserDb{Email = email, Id = Guid.NewGuid()};
+            user = new UserDb{Email = email, Id = Guid.NewGuid(), Units = new List<Guid>(), Buildings = new List<Guid>()};
             db.Users.Add(user);
             db.SaveChanges();
             return user;

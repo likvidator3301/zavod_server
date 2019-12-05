@@ -53,11 +53,6 @@ namespace ZavodServer
                 {
                     options.ClientId = authConfig.ReadConfig().client_id;
                     options.ClientSecret = authConfig.ReadConfig().client_secret;
-                    options.Events.OnRemoteFailure = ctx =>
-                    {
-                        // React to the error here. See the notes below.
-                        return Task.CompletedTask;
-                    };
                 });
         }
 

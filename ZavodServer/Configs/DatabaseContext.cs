@@ -8,6 +8,13 @@ namespace ZavodServer
 {
     public class DatabaseContext : IdentityDbContext<IdentityUser>
     {
+        public DatabaseContext()
+        {
+            
+        }
+        public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
+        {
+        }
         public DbSet<UnitDb> Units { get; set; }
         public DbSet<DefaultUnitDb> DefaultUnits { get; set; }
         public DbSet<BuildingDb> Buildings { get; set; }
