@@ -13,22 +13,24 @@ namespace ZavodServer.Controllers
     [Produces("application/json")]
     [ApiController]
     [AllowAnonymous]
-    [Route("/")]
+    [Route("auth")]
 //    [Authorize]
     public class AuthController : Controller
     {
         private readonly DatabaseContext db = new DatabaseContext();
         private SignInManager<IdentityUser> signInManager;
-        private UserManager<IdentityUser> userManager;
         
-        public AuthController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
+        public AuthController(SignInManager<IdentityUser> signInManager)
         {
             this.signInManager = signInManager;
-            this.userManager = userManager;
         }
         
+        /// <summary>
+        ///     Authorize person by google
+        /// </summary>
+        /// <returns>redirect to callback</returns>
         [HttpGet("login")]
-        public ActionResult Login(string returnUrl ="/LoginCallback")
+        public ActionResult Login()
         {
             var authProp = signInManager.ConfigureExternalAuthenticationProperties("Google",
                 Url.Action("LoginCallback", "Auth", null, Request.Scheme));
@@ -36,21 +38,17 @@ namespace ZavodServer.Controllers
         }
 
         [HttpGet("LoginCallback")]
-        public async Task<ActionResult> LoginCallback()
+        public ActionResult<UserDb> LoginCallback()
         {
-//            var info = await signInManager.GetExternalLoginInfoAsync();
-//            var result = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+            if (!User.Identity.IsAuthenticated) return Unauthorized();
             var email = User.Claims.First(x => x.Type == ClaimTypes.Email).Value;
-            var name = User.Identity.Name.Trim();
-            var user = new IdentityUser {Email = email, UserName = name, Id = Guid.NewGuid().ToString()};
-            var result = await userManager.CreateAsync(user);
-            if (result.Succeeded)
-            {
-                // установка куки
-                await signInManager.SignInAsync(user, false);
-                return RedirectToAction("GetAll", "Unit");
-            }
-            return Ok(email);
+            var user = db.Users.FirstOrDefault(x => x.Email.ToLower().Equals(email.ToLower()));
+            if (user != null)
+                return user;
+            user = new UserDb{Email = email, Id = Guid.NewGuid()};
+            db.Users.Add(user);
+            db.SaveChanges();
+            return user;
         }
     }
 }

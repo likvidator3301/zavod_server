@@ -79,7 +79,6 @@ namespace ZavodServer
             app.UseRouting();
                 
             app.UseHttpsRedirection();
-
             
             app.UseAuthentication();
             app.UseAuthorization();

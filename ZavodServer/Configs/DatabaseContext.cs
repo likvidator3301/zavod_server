@@ -8,17 +8,11 @@ namespace ZavodServer
 {
     public class DatabaseContext : IdentityDbContext<IdentityUser>
     {
-        public DatabaseContext()
-        {
-        }
-        public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
-        {
-        }
         public DbSet<UnitDb> Units { get; set; }
         public DbSet<DefaultUnitDb> DefaultUnits { get; set; }
         public DbSet<BuildingDb> Buildings { get; set; }
         public DbSet<DefaultBuildingDb> DefaultBuildings { get; set; }
-
+        public DbSet<UserDb> Users { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

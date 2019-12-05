@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ZavodServer.Models;
@@ -25,8 +26,6 @@ namespace ZavodServer.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<UnitDb>> GetAll()
         {
-//            if (!User.Identity.IsAuthenticated)
-//                return BadRequest();
             IEnumerable<UnitDb> result = db.Units.Select(x => x);
             return new ActionResult<IEnumerable<UnitDb>>(result);
         }
@@ -74,6 +73,8 @@ namespace ZavodServer.Controllers
             unitDto.Id = Guid.NewGuid();
             unitDto.Position = new Vector3(createUnit.Position.X, createUnit.Position.Y, createUnit.Position.Z);
             db.Units.Add(unitDto);
+            db.Users.First(x => x.Email == User.Claims.First(c => c.Type == ClaimTypes.Email).Value)
+                .Units.Add(unitDto.Id);
             db.SaveChanges();
             return unitDto;
         }
@@ -87,6 +88,9 @@ namespace ZavodServer.Controllers
         [HttpPut]
         public ActionResult<UnitDb> UpdateUnit([FromBody] UnitDb unitDto)
         {
+            var userDb = db.Users.First(x => x.Email == User.Claims.First(c => c.Type == ClaimTypes.Email).Value);
+            if (!userDb.Units.Contains(unitDto.Id))
+                return BadRequest();
             if (!db.Units.Select(x => x.Id).Contains(unitDto.Id))
                 return NotFound(unitDto);
             var updatingUnit = db.Units.First(x => x.Id == unitDto.Id);
@@ -105,8 +109,12 @@ namespace ZavodServer.Controllers
         [HttpDelete]
         public ActionResult<UnitDb> DeleteUnit([FromRoute] Guid id)
         {
+            var userDb = db.Users.First(x => x.Email == User.Claims.First(c => c.Type == ClaimTypes.Email).Value);
+            if (!userDb.Units.Contains(id))
+                return BadRequest();
             if (!db.Units.Select(x => x.Id).Contains(id))
                 return NotFound(id);
+            userDb.Units.Remove(id);
             db.Units.Remove(db.Units.First(x => x.Id == id));
             db.SaveChanges();
             return Ok();
@@ -119,12 +127,15 @@ namespace ZavodServer.Controllers
         ///    Массив пар id атакующего и атакуемого
         /// </param>
         /// <returns></returns>
-        [HttpPatch("attack")]
+        [HttpPost("attack")]
         public ActionResult<IEnumerable<ResultOfAttackDto>> AttackUnit([FromBody] params AttackUnitDto[] unitAttacks)
         {
+            var userUnits = db.Users.First(x => x.Email == User.Claims.First(c => c.Type == ClaimTypes.Email).Value)
+                .Units;
+            var validatedUnits = unitAttacks.Where(x => userUnits.Contains(x.Attack)).ToList();
             List<ResultOfAttackDto> attackResult = new List<ResultOfAttackDto>();
             //Уверен что эо плохая идея, но ничего лучше пока не придумал
-            foreach (var unitAttack in unitAttacks)
+            foreach (var unitAttack in validatedUnits)
             {
                 var attack = db.Units.First(x => x.Id == unitAttack.Attack);
                 var defence = db.Units.First(x => x.Id == unitAttack.Defence);
@@ -146,12 +157,15 @@ namespace ZavodServer.Controllers
         /// </summary>
         /// <param name="moveUnits"></param>
         /// <returns></returns>
-        [HttpPatch("move")]
+        [HttpPost("move")]
         public ActionResult<IEnumerable<MoveUnitDto>> MoveUnit([FromBody] params MoveUnitDto[] moveUnits)
         {
+            var userUnits = db.Users.First(x => x.Email == User.Claims.First(c => c.Type == ClaimTypes.Email).Value)
+                .Units;
+            var validatedUnits = moveUnits.Where(x => userUnits.Contains(x.Id)).ToList();
             List<MoveUnitDto> badMoveResult = new List<MoveUnitDto>();
             //Уверен что эо плохая идея, но ничего лучше пока не придумал
-            foreach (var movingUnit in moveUnits)
+            foreach (var movingUnit in validatedUnits)
             {
                 var movesUnit = db.Units.First(x => x.Id == movingUnit.Id);
                 var oldPosition = movesUnit.Position;

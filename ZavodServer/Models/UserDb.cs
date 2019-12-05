@@ -8,7 +8,7 @@ namespace ZavodServer.Models
     {
         public Guid Id;
         public string Email;
-        public List<UnitDb> Units;
-        public List<BuildingDb> Buildings;
+        public List<Guid> Units;
+        public List<Guid> Buildings;
     }
 }
