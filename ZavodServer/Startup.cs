@@ -5,14 +5,16 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using ZavodServer.Models;
+using Vostok.Logging.File;
+using Vostok.Logging.File.Configuration;
+using Vostok.Logging.Microsoft;
 
 namespace ZavodServer
 {
@@ -57,13 +59,19 @@ namespace ZavodServer
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
 
             var swaggerOptions = new SwaggerOptions();
             Configuration.GetSection(nameof(SwaggerOptions)).Bind(swaggerOptions);
 
+            var fileLogSettings = new FileLogSettings();
+            fileLogSettings.FilePath = AppDomain.CurrentDomain.BaseDirectory + "/log.txt";
+            var consoleLog = new FileLog(fileLogSettings);
+            
+            loggerFactory.AddVostok(consoleLog);
+            
             app.UseSwagger(option => { option.RouteTemplate = swaggerOptions.JsonRoute; });
 
             app.UseSwaggerUI(option =>

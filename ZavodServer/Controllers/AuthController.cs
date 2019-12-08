@@ -15,7 +15,6 @@ namespace ZavodServer.Controllers
     [ApiController]
     [AllowAnonymous]
     [Route("auth")]
-//    [Authorize]
     public class AuthController : Controller
     {
         private readonly DatabaseContext db = new DatabaseContext();
