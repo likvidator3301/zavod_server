@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Models;
+using NUnit.Framework;
 
 namespace ZavodClient
 {
@@ -13,8 +14,8 @@ namespace ZavodClient
         private static HttpClient client;
         private static string unitUrl;
 
-        private static List<AttackUnitDto> attackUnitsDto;
-        private static List<MoveUnitDto> moveUnitsDto;
+        private static List<AttackUnitDto> attackUnitsDto = new List<AttackUnitDto>();
+        private static List<MoveUnitDto> moveUnitsDto = new List<MoveUnitDto>();
 
         public Unit(string baseUrl)
         {
@@ -90,6 +91,7 @@ namespace ZavodClient
         public async Task<List<ResultOfAttackDto>> SendAttackUnits()
         {
             var response = await client.PutAsJsonAsync($"{unitUrl}attack/", attackUnitsDto);
+            attackUnitsDto.Clear();
             response.EnsureSuccessStatusCode();
             var updateAttackUnitsDto = await response.Content.ReadAsAsync<List<ResultOfAttackDto>>();
             return updateAttackUnitsDto;
@@ -98,6 +100,7 @@ namespace ZavodClient
         public async Task<List<MoveUnitDto>> SendMoveUnits()
         {
             var response = await client.PutAsJsonAsync($"{unitUrl}move/", moveUnitsDto);
+            moveUnitsDto.Clear();
             response.EnsureSuccessStatusCode();
             var updateMoveUnitsDto = await response.Content.ReadAsAsync<List<MoveUnitDto>>();
             return updateMoveUnitsDto;
