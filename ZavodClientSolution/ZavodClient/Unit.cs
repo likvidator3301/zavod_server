@@ -64,10 +64,10 @@ namespace ZavodClient
             return objectDto;
         }
         
-        public async Task<ServerUnitDto> CreateUnit(UnitType unitType)
+        public async Task<ServerUnitDto> CreateUnit(CreateUnitDto createUnitDto)
         {
             var response = await client.PostAsJsonAsync(
-                unitUrl, unitType);
+                unitUrl, createUnitDto);
             var objectDto = await response.Content.ReadAsAsync<ServerUnitDto>();
             return objectDto;
         }
@@ -87,11 +87,11 @@ namespace ZavodClient
             return HttpStatusCode.OK;
         }
 
-        public async Task<List<Guid>> SendAttackUnits()
+        public async Task<List<ResultOfAttackDto>> SendAttackUnits()
         {
             var response = await client.PutAsJsonAsync($"{unitUrl}attack/", attackUnitsDto);
             response.EnsureSuccessStatusCode();
-            var updateAttackUnitsDto = await response.Content.ReadAsAsync<List<Guid>>();
+            var updateAttackUnitsDto = await response.Content.ReadAsAsync<List<ResultOfAttackDto>>();
             return updateAttackUnitsDto;
         }
 

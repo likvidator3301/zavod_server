@@ -2,6 +2,11 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageId>Zavod.Models</PackageId>
+        <Title>Zavod.Models</Title>
+        <Authors>ZavodTeam</Authors>
+        <Product>Zavod.Models</Product>
     </PropertyGroup>
 
 </Project>
