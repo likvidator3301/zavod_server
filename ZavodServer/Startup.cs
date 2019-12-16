@@ -1,19 +1,17 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using Models;
 using ZavodServer.Models;
 
 namespace ZavodServer
@@ -39,11 +37,13 @@ namespace ZavodServer
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 x.IncludeXmlComments(xmlPath);
             });
-            services.Configure<IdentityOptions>(options =>
-            {
-                options.SignIn.RequireConfirmedEmail = false;
-                options.SignIn.RequireConfirmedPhoneNumber = false;
-            });
+            var dbConfig = new DatabaseConfig();
+            var config = dbConfig.ReadConfig();
+            services.AddDbContext<DatabaseContext>(builder => builder.UseNpgsql(config));
+            services.AddIdentity<IdentityUser, IdentityRole>()  
+                .AddEntityFrameworkStores<DatabaseContext>()  
+                .AddDefaultTokenProviders();  
+            
             services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = GoogleDefaults.AuthenticationScheme;
@@ -70,10 +70,12 @@ namespace ZavodServer
             {
                 option.SwaggerEndpoint(swaggerOptions.UIEndpoint, swaggerOptions.Description);
             });
-            app.UseHttpsRedirection();
-
+            
             app.UseRouting();
-
+                
+            app.UseHttpsRedirection();
+            
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });

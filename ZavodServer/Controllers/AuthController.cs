@@ -1,47 +1,55 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Owin.Security;
 using ZavodServer.Models;
-using AuthenticationProperties = Microsoft.AspNetCore.Authentication.AuthenticationProperties;
 
 namespace ZavodServer.Controllers
 {
     [Produces("application/json")]
     [ApiController]
-//    [AllowAnonymous]
-    [Route("/")]
+    [AllowAnonymous]
+    [Route("auth")]
+//    [Authorize]
     public class AuthController : Controller
     {
         private readonly DatabaseContext db = new DatabaseContext();
-        private readonly SignInManager<UserDb> signInManager;
-
-        public AuthController(SignInManager<UserDb> regManager)
+        private SignInManager<IdentityUser> signInManager;
+        
+        public AuthController(SignInManager<IdentityUser> signInManager)
         {
-            signInManager = regManager;
+            this.signInManager = signInManager;
         }
         
+        /// <summary>
+        ///     Authorize person by google
+        /// </summary>
+        /// <returns>redirect to callback</returns>
         [HttpGet("login")]
-        public ActionResult Login(string returnUrl ="/")
+        public ActionResult Login()
         {
-            return new ChallengeResult(new AuthenticationProperties {RedirectUri = returnUrl});
+            var authProp = signInManager.ConfigureExternalAuthenticationProperties("Google",
+                Url.Action("LoginCallback", "Auth", null, Request.Scheme));
+            return Challenge(authProp);
         }
 
-       [HttpGet("signin-google")]
-        public ActionResult LoginCallback()
+        [HttpGet("LoginCallback")]
+        public ActionResult<UserDb> LoginCallback()
         {
-            var newUser = signInManager.GetExternalLoginInfoAsync();
-            return Ok("Tut 4to-to napisano: "+User.Identities.First().IsAuthenticated);
+            if (!User.Identity.IsAuthenticated) return Unauthorized();
+            var email = User.Claims.First(x => x.Type == ClaimTypes.Email).Value;
+            var user = db.Users.FirstOrDefault(x => x.Email.ToLower().Equals(email.ToLower()));
+            if (user != null)
+                return user;
+            user = new UserDb{Email = email, Id = Guid.NewGuid(), Units = new List<Guid>(), Buildings = new List<Guid>()};
+            db.Users.Add(user);
+            db.SaveChanges();
+            return user;
         }
     }
-    /*
-     * http://localhost:5000/auth/googleCallback
-     * ?state=CfDJ8IGASaB2OJhNiYicgRiEXj88dmjXadrbBNO_MvWxxnjJgnrW0shz1Hus4Rdxogb69fposJt1xEy5EbPnOd-gpoq3brIJdIr5HZSYu5u8kDWAmTed-8LmbDVdekjb5d4TBRQNuInVcC8PeT5kO3dua84fLwQ7kovmQ4LIQiwu7JdPCprxOYIJ4RuHJGfmTAWbttzOAY7t6152-04T9xbS4aI
-     * &code=4%2FtgHEfX8-TEVWEhnZezJF83WPfSCzbJ_mfRMe437LABt9IpaphMCZd9Z8QyyXUk9h-SgafuIcsp-PEPZGBDN8qIE
-     * &scope=email+profile+openid+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email
-     * &authuser=0
-     * &session_state=ab82c89f2feb6f6c577f42901c19d403b121bd60..3ced
-     * &prompt=consent#
-     */
 }
