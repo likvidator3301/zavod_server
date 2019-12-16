@@ -1,20 +1,20 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Models;
-using ZavodServer.Models;
+using Vostok.Logging.File;
+using Vostok.Logging.File.Configuration;
+using Vostok.Logging.Microsoft;
 
 namespace ZavodServer
 {
@@ -39,11 +39,13 @@ namespace ZavodServer
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 x.IncludeXmlComments(xmlPath);
             });
-            services.Configure<IdentityOptions>(options =>
-            {
-                options.SignIn.RequireConfirmedEmail = false;
-                options.SignIn.RequireConfirmedPhoneNumber = false;
-            });
+            var dbConfig = new DatabaseConfig();
+            var config = dbConfig.ReadConfig();
+            services.AddDbContext<DatabaseContext>(builder => builder.UseNpgsql(config));
+            services.AddIdentity<IdentityUser, IdentityRole>()  
+                .AddEntityFrameworkStores<DatabaseContext>()  
+                .AddDefaultTokenProviders();  
+            
             services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = GoogleDefaults.AuthenticationScheme;
@@ -57,23 +59,31 @@ namespace ZavodServer
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
 
             var swaggerOptions = new SwaggerOptions();
             Configuration.GetSection(nameof(SwaggerOptions)).Bind(swaggerOptions);
 
+            var fileLogSettings = new FileLogSettings();
+            fileLogSettings.FilePath = AppDomain.CurrentDomain.BaseDirectory + "/log.txt";
+            var consoleLog = new FileLog(fileLogSettings);
+            
+            loggerFactory.AddVostok(consoleLog);
+            
             app.UseSwagger(option => { option.RouteTemplate = swaggerOptions.JsonRoute; });
 
             app.UseSwaggerUI(option =>
             {
                 option.SwaggerEndpoint(swaggerOptions.UIEndpoint, swaggerOptions.Description);
             });
-            app.UseHttpsRedirection();
-
+            
             app.UseRouting();
-
+                
+            app.UseHttpsRedirection();
+            
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });

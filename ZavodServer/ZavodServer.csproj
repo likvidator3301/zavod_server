@@ -6,17 +6,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="3.0.0" />
       <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="3.0.0" />
       <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
       <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.0.0" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.0.0" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.0.0" />
-      <PackageReference Include="Microsoft.Owin.Security" Version="4.1.0" />
-      <PackageReference Include="Microsoft.Owin.Security.Google" Version="4.1.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.0" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.0.1" />
       <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0-rc4" />
+      <PackageReference Include="Vostok.Logging.Abstractions" Version="1.0.4" />
+      <PackageReference Include="Vostok.Logging.File" Version="1.0.4" />
+      <PackageReference Include="Vostok.Logging.Microsoft" Version="2.0.0" />
     </ItemGroup>
 
     <ItemGroup>
