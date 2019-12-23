@@ -139,7 +139,7 @@ namespace ZavodServer.Controllers
             {
                 var attack = db.Units.First(x => x.Id == unitAttack.Attack);
                 var defence = db.Units.First(x => x.Id == unitAttack.Defence);
-                if (Vector3.Distance(attack.Position, defence.Position) > 1)
+                if (Vector3.Distance(attack.Position, defence.Position) > attack.AttackRange)
                 {
                     attackResult.Add(new ResultOfAttackDto{Id = defence.Id, Flag = false, Hp = defence.CurrentHp});
                     continue;
@@ -170,7 +170,7 @@ namespace ZavodServer.Controllers
                 var movesUnit = db.Units.First(x => x.Id == movingUnit.Id);
                 var oldPosition = movesUnit.Position;
                 var newPosition = movingUnit.NewPosition;
-                if (Vector3.Distance(movesUnit.Position, newPosition) > 20)
+                if (Vector3.Distance(movesUnit.Position, newPosition) > movesUnit.MoveSpeed)
                 {
                     badMoveResult.Add(new MoveUnitDto{Id = movesUnit.Id, NewPosition = oldPosition});
                     continue;

@@ -4,10 +4,12 @@ WORKDIR /app
 # copy csproj and restore as distinct layers
 COPY *.sln .
 COPY ZavodServer/*.csproj ./ZavodServer/
+COPY Models/*.csproj ./Models/
 RUN dotnet restore
 
 # copy everything else and build app
 COPY ZavodServer/. ./ZavodServer/
+COPY Models/. ./Models/
 WORKDIR /app/ZavodServer
 RUN dotnet publish -c Release -o out
 
