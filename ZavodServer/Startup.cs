@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -39,18 +40,12 @@ namespace ZavodServer
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 x.IncludeXmlComments(xmlPath);
             });
-            var dbConfig = new DatabaseConfig();
-            var config = dbConfig.ReadConfig();
-            services.AddDbContext<DatabaseContext>(builder => builder.UseNpgsql(config));
-            services.AddIdentity<IdentityUser, IdentityRole>()  
-                .AddEntityFrameworkStores<DatabaseContext>()  
-                .AddDefaultTokenProviders();  
-            
             services.AddAuthentication(options =>
                 {
-                    options.DefaultAuthenticateScheme = GoogleDefaults.AuthenticationScheme;
+                    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
                 })
+                .AddCookie()
                 .AddGoogle(options =>
                 {
                     options.ClientId = authConfig.ReadConfig().client_id;

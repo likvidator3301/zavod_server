@@ -73,7 +73,8 @@ namespace ZavodServer.Controllers
             unitDto.Id = Guid.NewGuid();
             unitDto.Position = new Vector3(createUnit.Position.X, createUnit.Position.Y, createUnit.Position.Z);
             db.Units.Add(unitDto);
-            db.Users.First(x => x.Email == User.Claims.First(c => c.Type == ClaimTypes.Email).Value)
+            var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
+            db.Users.First(x => x.Email == email)
                 .Units.Add(unitDto.Id);
             db.SaveChanges();
             return unitDto;
@@ -88,7 +89,8 @@ namespace ZavodServer.Controllers
         [HttpPut]
         public ActionResult<UnitDb> UpdateUnit([FromBody] UnitDb unitDto)
         {
-            var userDb = db.Users.First(x => x.Email == User.Claims.First(c => c.Type == ClaimTypes.Email).Value);
+            var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
+            var userDb = db.Users.First(x => x.Email == email);
             if (!userDb.Units.Contains(unitDto.Id))
                 return BadRequest();
             if (!db.Units.Select(x => x.Id).Contains(unitDto.Id))

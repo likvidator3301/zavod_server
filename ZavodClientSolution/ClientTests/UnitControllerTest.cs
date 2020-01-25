@@ -18,12 +18,15 @@ namespace ClientTests
     [TestFixture]
     public class UnitControllerTest
     {
-        private Units client;
+        private Unit client;
         private List<ServerUnitDto> allUnits;
         [OneTimeSetUp]
         public async Task StartServer()
         {
-            client = new Units("http://localhost:5000");
+            client = new ZavodClient.ZavodClient("http://localhost:5000").Unit;
+            var myCookie =
+                $"CfDJ8IGASaB2OJhNiYicgRiEXj9OVzNUiB1uylSFkk7VtI-Ev_SnDFXgqK21YWQQq0P81hVzLCS2AitTt2EengvtXXhB_36RLOkuaFnxDSYQvjDn3UynmMPgtUWFTjhdh-4EznhjWsvcjCZI1e1BvC-SCZgwl47V9pA9_80LT6s3_W-OAl3VkzaCrCBwstgcRjMwJyccZ8HcPxzaOQUDAJ2DzLryVAjYhNQ_KgfYq_HtwsvQElofOQAXKWzAdfJxLzgVyxdeDLpRUmmgVvkFNOD7KMY2bYHcQebkMStF0Dd1Fzbz4P0-2FBncuH2HkkgSMP_WL2y8gJrYZJ4ad28ayPuVG2oCMcD_veev4Nk_cgbbX_s3aelPjhHorFCYfO6DR4I4e8YyDgjX_QjmHxtTdB94AEhb49RX202detEdelqGS0Yr12iEZzXSEMJcSIBIqLCyz9NFGM2V0VO879Vmd1OJiObyc-LUTT4b6hidpmLLWjTTlMGtrVJro9Dkrbn9uJptEJLG2baGKaRe6AW4s28tn2sj3VR0nP62cIOy2n5yd0_-E4COpN2BwAsM2Mpc1bwh_RuVSzSB340_RcWx3pMuQNbGVSnjFO7RWG492QE411CjFK1jyR1gFSEsH2yMax7TlYIApljmiBcIi1V2IEfMT-U-QJuiGwiWOQ_VqZi_IWJu1qdS1XtysvyB1QpDJExFOFzFoTN9ddaiNOAC-Z5RBh56PWTJfpuJOUZ42RWBt1ZNapthH-r7i0vQruDrh63NSIEUBIdtCDY52PVZs1R7cbBFLzUI39GWx-8tXtlSKlcvrbANwf_QlVbPhqopR-cX3RXKsPEQgtYNsiFx76B6vu2QgWmOdNkOjkYJGmQwgle20cxYByr-ELBHaiqRw0jVQ";
+            ZavodClient.ZavodClient.Client.DefaultRequestHeaders.Add("Cookie", ".AspNetCore.Cookies="+myCookie);
             Host.CreateDefaultBuilder()
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup(typeof(Startup)); }).Build().RunAsync();
             allUnits = await client.GetAll();
@@ -32,7 +35,7 @@ namespace ClientTests
         [Test]
         public async Task CreateUnits()
         {
-            var result = await client.CreateUnit(UnitType.Warrior, new Vector3{X =15, Y = 25,Z = 10});
+            var result = await client.CreateUnit(new CreateUnitDto{UnitType = UnitType.Warrior, Position = new Vector3{X =15, Y = 25,Z = 10}});
             result.Should().NotBeNull();
         }
         
