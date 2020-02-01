@@ -13,8 +13,8 @@ using ZavodServer.Models;
 namespace ZavodServer.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20200125102922_new_auth_scheme")]
-    partial class new_auth_scheme
+    [Migration("20200201100603_first")]
+    partial class first
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

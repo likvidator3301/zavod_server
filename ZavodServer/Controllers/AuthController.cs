@@ -36,21 +36,21 @@ namespace ZavodServer.Controllers
         }
 
         [HttpGet("LoginCallback")]
-        public ActionResult<string> LoginCallback()
+        public ActionResult<UserDb> LoginCallback()
         {
             if (!User.Identity.IsAuthenticated) return Unauthorized();
             var email = User.Claims.First(x => x.Type == ClaimTypes.Email).Value;
             var user = db.Users.FirstOrDefault(x => x.Email.ToLower().Equals(email.ToLower()));
-            string userCookie = "";
-            if (HttpContext.Request.Cookies.ContainsKey(".AspNetCore.Cookies"))
-                userCookie = HttpContext.Request.Cookies[".AspNetCore.Cookies"];
-            return userCookie;
-            // if (user != null)
-            //     return user;
-            // user = new UserDb{Email = email, Id = Guid.NewGuid(), Units = new List<Guid>(), Buildings = new List<Guid>()};
-            // db.Users.Add(user);
-            // db.SaveChanges();
-            // return user;
+            // string userCookie = "";
+            // if (HttpContext.Request.Cookies.ContainsKey(".AspNetCore.Cookies"))
+            //     userCookie = HttpContext.Request.Cookies[".AspNetCore.Cookies"];
+            // return userCookie;
+            if (user != null)
+                return user;
+            user = new UserDb{Email = email, Id = Guid.NewGuid(), Units = new List<Guid>(), Buildings = new List<Guid>()};
+            db.Users.Add(user);
+            db.SaveChanges();
+            return user;
         }
     }
 }

@@ -1,12 +1,12 @@
 ﻿using System;
-//using System.Numerics;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Models;
 using ZavodServer.Models;
 
 namespace ZavodServer.Migrations
 {
-    public partial class update : Migration
+    public partial class first : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -16,7 +16,7 @@ namespace ZavodServer.Migrations
                 {
                     Id = table.Column<Guid>(nullable: false),
                     Type = table.Column<int>(nullable: false),
-                    Position = table.Column<Vector3>(type: "jsonb", nullable: false)
+                    Position = table.Column<Vector3>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -52,8 +52,8 @@ namespace ZavodServer.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
-                    Position = table.Column<Vector3>(type: "jsonb", nullable: false),
-                    Rotation = table.Column<Vector3>(type: "jsonb", nullable: false),
+                    Position = table.Column<Vector3>(type: "jsonb", nullable: true),
+                    Rotation = table.Column<Vector3>(type: "jsonb", nullable: true),
                     Type = table.Column<int>(nullable: false),
                     AttackDamage = table.Column<float>(nullable: false),
                     AttackDelay = table.Column<float>(nullable: false),
@@ -67,6 +67,20 @@ namespace ZavodServer.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Units", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Email = table.Column<string>(nullable: false),
+                    Id = table.Column<Guid>(nullable: false),
+                    Units = table.Column<List<Guid>>(nullable: true),
+                    Buildings = table.Column<List<Guid>>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Email);
                 });
         }
 
@@ -83,6 +97,9 @@ namespace ZavodServer.Migrations
 
             migrationBuilder.DropTable(
                 name: "Units");
+
+            migrationBuilder.DropTable(
+                name: "Users");
         }
     }
 }

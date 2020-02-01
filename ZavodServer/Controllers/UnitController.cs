@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ZavodServer.Models;
@@ -11,7 +12,7 @@ namespace ZavodServer.Controllers
 {
     [Produces("application/json")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     [Route("units")]
     public class UnitController : ControllerBase
     {
@@ -108,10 +109,11 @@ namespace ZavodServer.Controllers
         /// <returns>Deleted unit</returns>
         /// <response code="200">Returns deleted unit</response>
         /// <response code="404">If unit not found in db</response>
-        [HttpDelete]
-        public ActionResult<UnitDb> DeleteUnit([FromRoute] Guid id)
+        [HttpDelete("{id}")]
+        public ActionResult<Guid> DeleteUnit([FromRoute] Guid id)
         {
-            var userDb = db.Users.First(x => x.Email == User.Claims.First(c => c.Type == ClaimTypes.Email).Value);
+            var email = "maxaaboutall@gmail.com";
+            var userDb = db.Users.First(x => x.Email == email);
             if (!userDb.Units.Contains(id))
                 return BadRequest();
             if (!db.Units.Select(x => x.Id).Contains(id))
@@ -132,7 +134,8 @@ namespace ZavodServer.Controllers
         [HttpPost("attack")]
         public ActionResult<IEnumerable<ResultOfAttackDto>> AttackUnit([FromBody] params AttackUnitDto[] unitAttacks)
         {
-            var userUnits = db.Users.First(x => x.Email == User.Claims.First(c => c.Type == ClaimTypes.Email).Value)
+            var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
+            var userUnits = db.Users.First(x => x.Email == email)
                 .Units;
             var validatedUnits = unitAttacks.Where(x => userUnits.Contains(x.Attack)).ToList();
             List<ResultOfAttackDto> attackResult = new List<ResultOfAttackDto>();
@@ -162,7 +165,8 @@ namespace ZavodServer.Controllers
         [HttpPost("move")]
         public ActionResult<IEnumerable<MoveUnitDto>> MoveUnit([FromBody] params MoveUnitDto[] moveUnits)
         {
-            var userUnits = db.Users.First(x => x.Email == User.Claims.First(c => c.Type == ClaimTypes.Email).Value)
+            var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
+            var userUnits = db.Users.First(x => x.Email == email)
                 .Units;
             var validatedUnits = moveUnits.Where(x => userUnits.Contains(x.Id)).ToList();
             List<MoveUnitDto> badMoveResult = new List<MoveUnitDto>();
