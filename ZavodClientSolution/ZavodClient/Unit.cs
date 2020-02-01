@@ -27,8 +27,8 @@ namespace ZavodClient
         {
             attackUnitsDto.Add(new AttackUnitDto()
             {
-                Attack = attackUnit, 
-                Defence = defenceUnit
+                AttackUnitId = attackUnit, 
+                DefenceUnitId = defenceUnit
             });
         }
         
