@@ -48,6 +48,14 @@ namespace ZavodClient
             var objectsDto = await response.Content.ReadAsAsync<List<ServerUnitDto>>();
             return objectsDto;
         }
+        
+        public async Task<List<DefaultServerUnitDto>> GetAllDefaultUnits()
+        {
+            var response = await client.GetAsync($"{unitUrl}default");
+            response.EnsureSuccessStatusCode();
+            var objectsDto = await response.Content.ReadAsAsync<List<DefaultServerUnitDto>>();
+            return objectsDto;
+        }
 
         public async Task<ServerUnitDto> GetUnitById(Guid id)
         {
@@ -92,7 +100,7 @@ namespace ZavodClient
         {
             if (attackUnitsDto.Count == 0)
                 return new List<ResultOfAttackDto>();
-            var response = await client.PutAsJsonAsync($"{unitUrl}attack/", attackUnitsDto);
+            var response = await client.PostAsJsonAsync($"{unitUrl}attack/", attackUnitsDto);
             attackUnitsDto.Clear();
             response.EnsureSuccessStatusCode();
             var updateAttackUnitsDto = await response.Content.ReadAsAsync<List<ResultOfAttackDto>>();
@@ -103,7 +111,7 @@ namespace ZavodClient
         {
             if (moveUnitsDto.Count == 0)
                 return new List<MoveUnitDto>();
-            var response = await client.PutAsJsonAsync($"{unitUrl}move/", moveUnitsDto);
+            var response = await client.PostAsJsonAsync($"{unitUrl}move/", moveUnitsDto);
             moveUnitsDto.Clear();
             response.EnsureSuccessStatusCode();
             var updateMoveUnitsDto = await response.Content.ReadAsAsync<List<MoveUnitDto>>();

@@ -19,16 +19,27 @@ namespace ZavodServer.Controllers
         private readonly DatabaseContext db = new DatabaseContext();
 
         /// <summary>
-        ///     Returns all units id
+        ///     Returns all units
         /// </summary>
-        /// <returns>All units id</returns>
-        /// <response code="200">Returns all units id</response>
-        /// <response code="404">If no units in db</response>
+        /// <returns>All units, or empty list when no units</returns>
+        /// <response code="200">Returns all units</response>
         [HttpGet]
         public ActionResult<IEnumerable<UnitDb>> GetAll()
         {
             IEnumerable<UnitDb> result = db.Units.Select(x => x);
-            return new ActionResult<IEnumerable<UnitDb>>(result);
+            return Ok(result);
+        }
+        
+        /// <summary>
+        ///     Returns all default units, like templates
+        /// </summary>
+        /// <returns>All default units, or empty list when no default units</returns>
+        /// <response code="200">Returns all default units</response>
+        [HttpGet("default")]
+        public ActionResult<IEnumerable<DefaultUnitDb>> GetAllDefaultUnits()
+        {
+            IEnumerable<DefaultUnitDb> result = db.DefaultUnits.Select(x => x);
+            return Ok(result);
         }
 
         /// <summary>
@@ -114,10 +125,10 @@ namespace ZavodServer.Controllers
         {
             var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
             var userDb = db.Users.First(x => x.Email == email);
-            if (!userDb.Units.Contains(id))
-                return BadRequest();
             if (!db.Units.Select(x => x.Id).Contains(id))
                 return NotFound(id);
+            if (!userDb.Units.Contains(id))
+                return BadRequest();
             userDb.Units.Remove(id);
             db.Units.Remove(db.Units.First(x => x.Id == id));
             db.SaveChanges();
@@ -135,17 +146,18 @@ namespace ZavodServer.Controllers
         public ActionResult<IEnumerable<ResultOfAttackDto>> AttackUnit([FromBody] params AttackUnitDto[] unitAttacks)
         {
             var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
-            var userUnitIds = db.Users.First(x => x.Email == email)
-                .Units;
-            var validatedUnits = unitAttacks.Where(x => userUnitIds.Contains(x.AttackUnitId)).ToList();
+            var userUnitIds = db.Users.First(x => x.Email == email).Units;
+            var userUnits = db.Units.Where(x => x.CurrentHp > 0 && userUnitIds.Contains(x.Id));
+            var defenceUnitsIds = unitAttacks.Select(x => x.DefenceUnitId);
+            var defenceUnits = db.Units.Where(x => defenceUnitsIds.Contains(x.Id) && x.CurrentHp > 0);
             List<ResultOfAttackDto> attackResult = new List<ResultOfAttackDto>();
-            //Уверен что эо плохая идея, но ничего лучше пока не придумал
-            foreach (var unitAttack in validatedUnits)
+            foreach (var unitAttack in unitAttacks)
             {
-                var attack = db.Units.First(x => x.Id == unitAttack.AttackUnitId);
-                var defence = db.Units.First(x => x.Id == unitAttack.DefenceUnitId);
-                if (attack.CurrentHp <= 0 || defence.CurrentHp <= 0 
-                                          || Vector3.Distance(attack.Position, defence.Position) > attack.AttackRange)
+                var attack = userUnits.FirstOrDefault(x => x.Id.Equals(unitAttack.AttackUnitId));
+                var defence = defenceUnits.FirstOrDefault(x => x.Id.Equals(unitAttack.DefenceUnitId));
+                if(attack == null || defence == null)
+                    continue;
+                if (Vector3.Distance(attack.Position, defence.Position) > attack.AttackRange)
                 {
                     attackResult.Add(new ResultOfAttackDto{Id = defence.Id, Flag = false, Hp = defence.CurrentHp});
                     continue;
@@ -166,15 +178,15 @@ namespace ZavodServer.Controllers
         [HttpPost("move")]
         public ActionResult<IEnumerable<MoveUnitDto>> MoveUnit([FromBody] params MoveUnitDto[] moveUnits)
         {
-            /*var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
-            var userUnits = db.Users.First(x => x.Email == email)
-                .Units;
-            var validatedUnits = moveUnits.Where(x => userUnits.Contains(x.Id)).ToList();
+            var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
+            var userUnitIds = db.Users.First(x => x.Email == email).Units;
+            var userUnits = db.Units.Where(x => userUnitIds.Contains(x.Id) && x.CurrentHp > 0);
             List<MoveUnitDto> badMoveResult = new List<MoveUnitDto>();
-            //Уверен что эо плохая идея, но ничего лучше пока не придумал
-            foreach (var movingUnit in validatedUnits)
+            foreach (var movingUnit in moveUnits)
             {
-                var movesUnit = db.Units.First(x => x.Id == movingUnit.Id);
+                var movesUnit = userUnits.FirstOrDefault(x => x.Id == movingUnit.Id);
+                if(movesUnit == null)
+                    continue;
                 var oldPosition = movesUnit.Position;
                 var newPosition = movingUnit.NewPosition;
                 if (Vector3.Distance(movesUnit.Position, newPosition) > movesUnit.MoveSpeed)
@@ -186,32 +198,12 @@ namespace ZavodServer.Controllers
                 movesUnit.Position = newPosition;
                 db.SaveChanges();
             }
-            return badMoveResult;*/
-            List<MoveUnitDto> errorMove = new List<MoveUnitDto>();
-            var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
-            var userUnitIds = db.Users.First(x => x.Email == email).Units.ToHashSet();
-            var units = db.Units.Where(x => userUnitIds.Contains(x.Id))
-                .Where(x => x.CurrentHp > 0).ToDictionary(x => x.Id);
-            foreach (var movingUnit in moveUnits)
-            {
-                var movesUnit = units[movingUnit.Id];
-                if (Vector3.Distance(movesUnit.Position, movingUnit.NewPosition) > 1)
-                {
-                    errorMove.Add(new MoveUnitDto{Id = movesUnit.Id, NewPosition = movesUnit.Position});
-                    continue;
-                }
-                //db.Units.Update(movesUnit);
-                movesUnit.Position = movingUnit.NewPosition;
-            }
-
-            db.SaveChanges();
-            return errorMove;
-        }
+            return badMoveResult;
+          }
 
 //        [HttpPost("CreateSome")]
 //        public ActionResult<string> CreateSomeUnits([FromBody] UnitDb unitDb)
 //        {
-//            unitDb.Type = UnitType.Warrior;
 //            db.DefaultUnits.Add(new DefaultUnitDb {Type = unitDb.Type, UnitDto = unitDb});
 //            db.SaveChanges();
 //            return db.DefaultUnits.First().UnitDto.ToString();

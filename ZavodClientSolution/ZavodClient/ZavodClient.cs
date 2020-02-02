@@ -2,7 +2,6 @@
 
 namespace ZavodClient
 {
-    
     public class ZavodClient
     {
         public static HttpClient Client;
