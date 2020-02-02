@@ -40,7 +40,7 @@ namespace ZavodClient
                 NewPosition = newPosition
             });
         }
-        
+
         public async Task<List<ServerUnitDto>> GetAll()
         {
             var response = await client.GetAsync(unitUrl);
@@ -48,7 +48,7 @@ namespace ZavodClient
             var objectsDto = await response.Content.ReadAsAsync<List<ServerUnitDto>>();
             return objectsDto;
         }
-        
+
         public async Task<ServerUnitDto> GetUnitById(Guid id)
         {
             var response = await client.GetAsync($"{unitUrl}{id.ToString()}");
@@ -90,6 +90,8 @@ namespace ZavodClient
 
         public async Task<List<ResultOfAttackDto>> SendAttackUnits()
         {
+            if (attackUnitsDto.Count == 0)
+                return new List<ResultOfAttackDto>();
             var response = await client.PutAsJsonAsync($"{unitUrl}attack/", attackUnitsDto);
             attackUnitsDto.Clear();
             response.EnsureSuccessStatusCode();
@@ -99,6 +101,8 @@ namespace ZavodClient
 
         public async Task<List<MoveUnitDto>> SendMoveUnits()
         {
+            if (moveUnitsDto.Count == 0)
+                return new List<MoveUnitDto>();
             var response = await client.PutAsJsonAsync($"{unitUrl}move/", moveUnitsDto);
             moveUnitsDto.Clear();
             response.EnsureSuccessStatusCode();
