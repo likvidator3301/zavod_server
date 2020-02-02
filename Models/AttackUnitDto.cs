@@ -4,7 +4,7 @@ namespace Models
 {
     public class AttackUnitDto
     {
-        public Guid Attack { get; set; }
-        public Guid Defence { get; set; }
+        public Guid AttackUnitId { get; set; }
+        public Guid DefenceUnitId { get; set; }
     }
 }

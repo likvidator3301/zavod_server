@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -18,12 +19,6 @@ namespace ZavodServer.Controllers
     public class AuthController : Controller
     {
         private readonly DatabaseContext db = new DatabaseContext();
-        private SignInManager<IdentityUser> signInManager;
-        
-        public AuthController(SignInManager<IdentityUser> signInManager)
-        {
-            this.signInManager = signInManager;
-        }
         
         /// <summary>
         ///     Authorize person by google
@@ -32,9 +27,12 @@ namespace ZavodServer.Controllers
         [HttpGet("login")]
         public ActionResult Login()
         {
-            var authProp = signInManager.ConfigureExternalAuthenticationProperties("Google",
-                Url.Action("LoginCallback", "Auth", null, Request.Scheme));
-            return Challenge(authProp);
+            return new ChallengeResult(
+                GoogleDefaults.AuthenticationScheme,
+                new AuthenticationProperties
+                {
+                    RedirectUri = Url.Action(nameof(LoginCallback), "Auth")
+                });
         }
 
         [HttpGet("LoginCallback")]
@@ -43,6 +41,10 @@ namespace ZavodServer.Controllers
             if (!User.Identity.IsAuthenticated) return Unauthorized();
             var email = User.Claims.First(x => x.Type == ClaimTypes.Email).Value;
             var user = db.Users.FirstOrDefault(x => x.Email.ToLower().Equals(email.ToLower()));
+            // string userCookie = "";
+            // if (HttpContext.Request.Cookies.ContainsKey(".AspNetCore.Cookies"))
+            //     userCookie = HttpContext.Request.Cookies[".AspNetCore.Cookies"];
+            // return userCookie;
             if (user != null)
                 return user;
             user = new UserDb{Email = email, Id = Guid.NewGuid(), Units = new List<Guid>(), Buildings = new List<Guid>()};

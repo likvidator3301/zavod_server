@@ -23,6 +23,7 @@ namespace ZavodServer.Controllers
         /// <param name="building">
         /// Объект создаваемого здания: его тип и позиция</param>
         /// <returns></returns>
+        [HttpPost]
         public ActionResult<BuildingDb> CreateBuilding([FromBody] CreateBuildingDto building)
         {
             var userDb = db.Users.First(x => x.Email == User.Claims.First(c => c.Type == ClaimTypes.Email).Value);

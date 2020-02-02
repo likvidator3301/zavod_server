@@ -1,20 +1,11 @@
 using System;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ZavodServer.Models;
 
 namespace ZavodServer
 {
-    public class DatabaseContext : IdentityDbContext<IdentityUser>
+    public class DatabaseContext : DbContext
     {
-        public DatabaseContext()
-        {
-            
-        }
-        public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
-        {
-        }
         public DbSet<UnitDb> Units { get; set; }
         public DbSet<DefaultUnitDb> DefaultUnits { get; set; }
         public DbSet<BuildingDb> Buildings { get; set; }
