@@ -212,7 +212,6 @@ namespace ClientTests
             client.AddUnitsToMove(newUnit.Id, new Vector3(1,2,3));
             var result = await client.SendMoveUnits();
             result.Should().BeEmpty();
-            
         }
     }
 }
