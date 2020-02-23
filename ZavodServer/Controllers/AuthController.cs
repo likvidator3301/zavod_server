@@ -18,7 +18,16 @@ namespace ZavodServer.Controllers
     [Route("auth")]
     public class AuthController : Controller
     {
-        private readonly DatabaseContext db = new DatabaseContext();
+        private readonly DatabaseContext db;
+        
+        /// <summary>
+        ///     AuthController constructor, that assign database context
+        /// </summary>
+        /// <param name="db">database context</param>
+        public AuthController(DatabaseContext db)
+        {
+            this.db = db;
+        }
         
         /// <summary>
         ///     Authorize person by google

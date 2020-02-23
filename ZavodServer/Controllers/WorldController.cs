@@ -10,9 +10,18 @@ namespace ZavodServer.Controllers
     [ApiController]
     [Authorize]
     [Route("World")]
-    public class WorldController : ControllerBase
+    public class WorldController : BaseController
     {
-        private readonly DatabaseContext db = new DatabaseContext();
+        private readonly DatabaseContext db;
+
+        /// <summary>
+        ///     WorldController constructor, that assign database context
+        /// </summary>
+        /// <param name="db">database context</param>
+        public WorldController(DatabaseContext db)
+        {
+            this.db = db;
+        }
 
         /// <summary>
         ///     Возвразает массив юзеров с списками UnitId, BuildingId

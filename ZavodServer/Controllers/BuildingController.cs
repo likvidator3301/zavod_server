@@ -13,10 +13,19 @@ namespace ZavodServer.Controllers
     [ApiController]
     [Authorize]
     [Route("buildings")]
-    public class BuildingController : ControllerBase
+    public class BuildingController : BaseController
     {
-        private readonly DatabaseContext db = new DatabaseContext();
+        private readonly DatabaseContext db;
 
+        /// <summary>
+        ///     BuildingController constructor, that assign database context
+        /// </summary>
+        /// <param name="db">database context</param>
+        public BuildingController(DatabaseContext db)
+        {
+            this.db = db;
+        }
+        
         /// <summary>
         ///     Создание здания
         /// </summary>
@@ -26,7 +35,9 @@ namespace ZavodServer.Controllers
         [HttpPost]
         public ActionResult<BuildingDb> CreateBuilding([FromBody] CreateBuildingDto building)
         {
-            var userDb = db.Users.First(x => x.Email == User.Claims.First(c => c.Type == ClaimTypes.Email).Value);
+            if (!HttpContext.Request.Headers.TryGetValue("email", out var email))
+                return BadRequest();
+            var userDb = db.Users.First(x => x.Email == email);
             if (!db.DefaultBuildings.Select(x => x.Type).Contains(building.BuildingType))
                 return NotFound(building.BuildingType);
             var buildingDto = db.DefaultBuildings.First(x => x.Type == building.BuildingType).BuildingDto;
@@ -47,7 +58,9 @@ namespace ZavodServer.Controllers
         [HttpDelete]
         public ActionResult<BuildingDb> DeleteBuilding([FromRoute] Guid id)
         {
-            var userDb = db.Users.First(x => x.Email == User.Claims.First(c => c.Type == ClaimTypes.Email).Value);
+            if (!HttpContext.Request.Headers.TryGetValue("email", out var email))
+                return BadRequest();
+            var userDb = db.Users.First(x => x.Email == email);
             if (!userDb.Buildings.Contains(id))
                 return BadRequest();
             if (!db.Buildings.Select(x => x.Id).Contains(id))

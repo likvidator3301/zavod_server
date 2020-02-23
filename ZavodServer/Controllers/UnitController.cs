@@ -12,11 +12,19 @@ namespace ZavodServer.Controllers
 {
     [Produces("application/json")]
     [ApiController]
-    //[Authorize]
     [Route("units")]
-    public class UnitController : ControllerBase
+    public class UnitController : BaseController
     {
-        private readonly DatabaseContext db = new DatabaseContext();
+        private readonly DatabaseContext db;
+        
+        /// <summary>
+        ///     UnitController constructor, that assign database context
+        /// </summary>
+        /// <param name="db">database context</param>
+        public UnitController(DatabaseContext db)
+        {
+            this.db = db;
+        }
 
         /// <summary>
         ///     Returns all units
@@ -81,13 +89,13 @@ namespace ZavodServer.Controllers
         {
             if (!db.DefaultUnits.Select(x => x.Type).Contains(createUnit.UnitType))
                 return NotFound(createUnit.UnitType);
+            if (!HttpContext.Request.Headers.TryGetValue("email", out var email))
+                return BadRequest();
             var unitDto = db.DefaultUnits.First(x => x.Type == createUnit.UnitType).UnitDto;
             unitDto.Id = Guid.NewGuid();
             unitDto.Position = new Vector3(createUnit.Position.X, createUnit.Position.Y, createUnit.Position.Z);
             db.Units.Add(unitDto);
-            var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
-            db.Users.First(x => x.Email == email)
-                .Units.Add(unitDto.Id);
+            db.Users.First(x => x.Email == email.ToString()).Units.Add(unitDto.Id);
             db.SaveChanges();
             return unitDto;
         }
@@ -101,8 +109,9 @@ namespace ZavodServer.Controllers
         [HttpPut]
         public ActionResult<UnitDb> UpdateUnit([FromBody] UnitDb unitDto)
         {
-            var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
-            var userDb = db.Users.First(x => x.Email == email);
+            if (!HttpContext.Request.Headers.TryGetValue("email", out var email))
+                return BadRequest();
+            var userDb = db.Users.First(x => x.Email == email.ToString());
             if (!userDb.Units.Contains(unitDto.Id))
                 return BadRequest();
             if (!db.Units.Select(x => x.Id).Contains(unitDto.Id))
@@ -123,8 +132,9 @@ namespace ZavodServer.Controllers
         [HttpDelete("{id}")]
         public ActionResult<Guid> DeleteUnit([FromRoute] Guid id)
         {
-            var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
-            var userDb = db.Users.First(x => x.Email == email);
+            if (!HttpContext.Request.Headers.TryGetValue("email", out var email))
+                return BadRequest();
+            var userDb = db.Users.First(x => x.Email == email.ToString());
             if (!db.Units.Select(x => x.Id).Contains(id))
                 return NotFound(id);
             if (!userDb.Units.Contains(id))
@@ -145,8 +155,9 @@ namespace ZavodServer.Controllers
         [HttpPost("attack")]
         public ActionResult<IEnumerable<ResultOfAttackDto>> AttackUnit([FromBody] params AttackUnitDto[] unitAttacks)
         {
-            var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
-            var userUnitIds = db.Users.First(x => x.Email == email).Units;
+            if (!HttpContext.Request.Headers.TryGetValue("email", out var email))
+                return BadRequest();
+            var userUnitIds = db.Users.First(x => x.Email == email.ToString()).Units;
             var userUnits = db.Units.Where(x => x.CurrentHp > 0 && userUnitIds.Contains(x.Id));
             var defenceUnitsIds = unitAttacks.Select(x => x.DefenceUnitId);
             var defenceUnits = db.Units.Where(x => defenceUnitsIds.Contains(x.Id) && x.CurrentHp > 0);
@@ -169,7 +180,7 @@ namespace ZavodServer.Controllers
             }
             return attackResult;
         }
-        
+
         /// <summary>
         ///     Move unit to new position
         /// </summary>
@@ -178,35 +189,30 @@ namespace ZavodServer.Controllers
         [HttpPost("move")]
         public ActionResult<IEnumerable<MoveUnitDto>> MoveUnit([FromBody] params MoveUnitDto[] moveUnits)
         {
-            var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
-            var userUnitIds = db.Users.First(x => x.Email == email).Units;
+            if (!HttpContext.Request.Headers.TryGetValue("email", out var email))
+                return BadRequest();
+            var userUnitIds = db.Users.First(x => x.Email == email.ToString()).Units;
             var userUnits = db.Units.Where(x => userUnitIds.Contains(x.Id) && x.CurrentHp > 0);
-            List<MoveUnitDto> badMoveResult = new List<MoveUnitDto>();
+            var badMoveResult = new List<MoveUnitDto>();
             foreach (var movingUnit in moveUnits)
             {
                 var movesUnit = userUnits.FirstOrDefault(x => x.Id == movingUnit.Id);
-                if(movesUnit == null)
+                if (movesUnit == null)
                     continue;
                 var oldPosition = movesUnit.Position;
                 var newPosition = movingUnit.NewPosition;
                 if (Vector3.Distance(movesUnit.Position, newPosition) > movesUnit.MoveSpeed)
                 {
-                    badMoveResult.Add(new MoveUnitDto{Id = movesUnit.Id, NewPosition = oldPosition});
+                    badMoveResult.Add(new MoveUnitDto {Id = movesUnit.Id, NewPosition = oldPosition});
                     continue;
                 }
+
                 db.Units.Update(movesUnit);
                 movesUnit.Position = newPosition;
                 db.SaveChanges();
             }
-            return badMoveResult;
-          }
 
-//        [HttpPost("CreateSome")]
-//        public ActionResult<string> CreateSomeUnits([FromBody] UnitDb unitDb)
-//        {
-//            db.DefaultUnits.Add(new DefaultUnitDb {Type = unitDb.Type, UnitDto = unitDb});
-//            db.SaveChanges();
-//            return db.DefaultUnits.First().UnitDto.ToString();
-//        }
+            return badMoveResult;
+        }
     }
 }
