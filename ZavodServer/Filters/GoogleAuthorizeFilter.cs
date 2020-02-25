@@ -29,7 +29,7 @@ namespace ZavodServer.Filters
             var email = JsonSerializer
                 .Deserialize<GoogleEmailScope>(result.Content.ReadAsStringAsync().Result)
                 .email;
-            context.HttpContext.Request.Headers.Add("email", email);
+            context.HttpContext.Items.Add("email", email);
             return result.IsSuccessStatusCode;
         }
     }

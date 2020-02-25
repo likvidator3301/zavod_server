@@ -35,8 +35,9 @@ namespace ZavodServer.Controllers
         [HttpPost]
         public ActionResult<BuildingDb> CreateBuilding([FromBody] CreateBuildingDto building)
         {
-            if (!HttpContext.Request.Headers.TryGetValue("email", out var email))
+            if(!HttpContext.Items.TryGetValue("email", out var emailObj))
                 return BadRequest();
+            var email = emailObj.ToString();
             var userDb = db.Users.First(x => x.Email == email);
             if (!db.DefaultBuildings.Select(x => x.Type).Contains(building.BuildingType))
                 return NotFound(building.BuildingType);
@@ -58,8 +59,9 @@ namespace ZavodServer.Controllers
         [HttpDelete]
         public ActionResult<BuildingDb> DeleteBuilding([FromRoute] Guid id)
         {
-            if (!HttpContext.Request.Headers.TryGetValue("email", out var email))
+            if(!HttpContext.Items.TryGetValue("email", out var emailObj))
                 return BadRequest();
+            var email = emailObj.ToString();
             var userDb = db.Users.First(x => x.Email == email);
             if (!userDb.Buildings.Contains(id))
                 return BadRequest();

@@ -16,7 +16,6 @@ namespace ZavodServer.Controllers
     public class UnitController : BaseController
     {
         private readonly DatabaseContext db;
-        
         /// <summary>
         ///     UnitController constructor, that assign database context
         /// </summary>
@@ -89,8 +88,9 @@ namespace ZavodServer.Controllers
         {
             if (!db.DefaultUnits.Select(x => x.Type).Contains(createUnit.UnitType))
                 return NotFound(createUnit.UnitType);
-            if (!HttpContext.Request.Headers.TryGetValue("email", out var email))
+            if(!HttpContext.Items.TryGetValue("email", out var emailObj))
                 return BadRequest();
+            var email = emailObj.ToString();
             var unitDto = db.DefaultUnits.First(x => x.Type == createUnit.UnitType).UnitDto;
             unitDto.Id = Guid.NewGuid();
             unitDto.Position = new Vector3(createUnit.Position.X, createUnit.Position.Y, createUnit.Position.Z);
@@ -109,8 +109,9 @@ namespace ZavodServer.Controllers
         [HttpPut]
         public ActionResult<UnitDb> UpdateUnit([FromBody] UnitDb unitDto)
         {
-            if (!HttpContext.Request.Headers.TryGetValue("email", out var email))
+            if(!HttpContext.Items.TryGetValue("email", out var emailObj))
                 return BadRequest();
+            var email = emailObj.ToString();
             var userDb = db.Users.First(x => x.Email == email.ToString());
             if (!userDb.Units.Contains(unitDto.Id))
                 return BadRequest();
@@ -132,8 +133,9 @@ namespace ZavodServer.Controllers
         [HttpDelete("{id}")]
         public ActionResult<Guid> DeleteUnit([FromRoute] Guid id)
         {
-            if (!HttpContext.Request.Headers.TryGetValue("email", out var email))
+            if(!HttpContext.Items.TryGetValue("email", out var emailObj))
                 return BadRequest();
+            var email = emailObj.ToString();
             var userDb = db.Users.First(x => x.Email == email.ToString());
             if (!db.Units.Select(x => x.Id).Contains(id))
                 return NotFound(id);
@@ -155,8 +157,9 @@ namespace ZavodServer.Controllers
         [HttpPost("attack")]
         public ActionResult<IEnumerable<ResultOfAttackDto>> AttackUnit([FromBody] params AttackUnitDto[] unitAttacks)
         {
-            if (!HttpContext.Request.Headers.TryGetValue("email", out var email))
+            if(!HttpContext.Items.TryGetValue("email", out var emailObj))
                 return BadRequest();
+            var email = emailObj.ToString();
             var userUnitIds = db.Users.First(x => x.Email == email.ToString()).Units;
             var userUnits = db.Units.Where(x => x.CurrentHp > 0 && userUnitIds.Contains(x.Id));
             var defenceUnitsIds = unitAttacks.Select(x => x.DefenceUnitId);
@@ -189,8 +192,9 @@ namespace ZavodServer.Controllers
         [HttpPost("move")]
         public ActionResult<IEnumerable<MoveUnitDto>> MoveUnit([FromBody] params MoveUnitDto[] moveUnits)
         {
-            if (!HttpContext.Request.Headers.TryGetValue("email", out var email))
+            if(!HttpContext.Items.TryGetValue("email", out var emailObj))
                 return BadRequest();
+            var email = emailObj.ToString();
             var userUnitIds = db.Users.First(x => x.Email == email.ToString()).Units;
             var userUnits = db.Units.Where(x => userUnitIds.Contains(x.Id) && x.CurrentHp > 0);
             var badMoveResult = new List<MoveUnitDto>();

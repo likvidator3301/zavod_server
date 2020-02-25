@@ -47,8 +47,9 @@ namespace ZavodServer.Controllers
         [HttpGet("LoginCallback")]
         public ActionResult<UserDb> LoginCallback()
         {
-            if (!User.Identity.IsAuthenticated) return Unauthorized();
-            var email = User.Claims.First(x => x.Type == ClaimTypes.Email).Value;
+            if(!HttpContext.Items.TryGetValue("email", out var emailObj))
+                return BadRequest();
+            var email = emailObj.ToString();
             var user = db.Users.FirstOrDefault(x => x.Email.ToLower().Equals(email.ToLower()));
             // string userCookie = "";
             // if (HttpContext.Request.Cookies.ContainsKey(".AspNetCore.Cookies"))
