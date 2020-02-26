@@ -26,7 +26,7 @@ namespace ClientTests
         {
             client = new ZavodClient.ZavodClient("http://localhost:5000").Unit;
             var token =
-                "ya29.Il-_B304MNNr7xAkHMa6XEvHiDJQBSUP1mIE9jBOTMK_HgERA4MTy9oPJqg9aKHUYmp9YHGgEG5NdKeOzfqFAqe9pP-ht34AA9kjGVBIPcLCu-aJ0PEKm3k9eNz3JXf3Sg";
+                "ya29.Il_AB7MuGvcdRqr4908kn0ZSxMTMPH2aZl3VsrQQH9GvY9oNBm1xPJJebX3HxKt1CA4vYVuau2NARhTtpdwOOVVrHEmkX4dKDeENypIsnDmRLvJWSZ6ss_CRyoEzCDFU4Q";
             ZavodClient.ZavodClient.Client.DefaultRequestHeaders.Add("token", token);
             Host.CreateDefaultBuilder()
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup(typeof(Startup)); }).Build().RunAsync();

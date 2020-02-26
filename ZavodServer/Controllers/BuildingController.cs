@@ -11,7 +11,6 @@ namespace ZavodServer.Controllers
 {
     [Produces("application/json")]
     [ApiController]
-    [Authorize]
     [Route("buildings")]
     public class BuildingController : BaseController
     {
@@ -38,6 +37,8 @@ namespace ZavodServer.Controllers
             if(!HttpContext.Items.TryGetValue("email", out var emailObj))
                 return BadRequest();
             var email = emailObj.ToString();
+            if (!db.Users.Any(x => x.Email == email))
+                return Unauthorized();
             var userDb = db.Users.First(x => x.Email == email);
             if (!db.DefaultBuildings.Select(x => x.Type).Contains(building.BuildingType))
                 return NotFound(building.BuildingType);

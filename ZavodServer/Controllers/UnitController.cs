@@ -60,7 +60,7 @@ namespace ZavodServer.Controllers
         {
             if (!db.Units.Select(x => x.Id).Contains(id))
                 return NotFound(id);
-            return db.Units.First(x => x.Id == id);
+            return Ok(db.Units.First(x => x.Id == id));
         }
 
         /// <summary>
@@ -74,8 +74,8 @@ namespace ZavodServer.Controllers
         {
             if (!db.Units.Select(x => x.Id).Contains(firstUnitId) || !db.Units.Select(x => x.Id).Contains(secondUnitId))
                 return NotFound("Объекты не найдены");
-            return Vector3.Distance(db.Units.First(x => x.Id == firstUnitId).Position,
-                db.Units.First(x => x.Id == secondUnitId).Position);
+            return Ok(Vector3.Distance(db.Units.First(x => x.Id == firstUnitId).Position,
+                db.Units.First(x => x.Id == secondUnitId).Position));
         }
 
         /// <summary>
@@ -91,13 +91,17 @@ namespace ZavodServer.Controllers
             if(!HttpContext.Items.TryGetValue("email", out var emailObj))
                 return BadRequest();
             var email = emailObj.ToString();
-            var unitDto = db.DefaultUnits.First(x => x.Type == createUnit.UnitType).UnitDto;
+            if (!db.Users.Any(x => x.Email == email))
+                return Unauthorized();
+            var unitDto = db.DefaultUnits.FirstOrDefault(x => x.Type == createUnit.UnitType)?.UnitDto;
+            if (unitDto == null)
+                return NotFound("No units that type");
             unitDto.Id = Guid.NewGuid();
             unitDto.Position = new Vector3(createUnit.Position.X, createUnit.Position.Y, createUnit.Position.Z);
             db.Units.Add(unitDto);
-            db.Users.First(x => x.Email == email.ToString()).Units.Add(unitDto.Id);
+            db.Users.First(x => x.Email == email).Units.Add(unitDto.Id);
             db.SaveChanges();
-            return unitDto;
+            return Ok(unitDto);
         }
 
         /// <summary>
@@ -112,7 +116,9 @@ namespace ZavodServer.Controllers
             if(!HttpContext.Items.TryGetValue("email", out var emailObj))
                 return BadRequest();
             var email = emailObj.ToString();
-            var userDb = db.Users.First(x => x.Email == email.ToString());
+            if (!db.Users.Any(x => x.Email == email))
+                return Unauthorized();
+            var userDb = db.Users.First(x => x.Email == email);
             if (!userDb.Units.Contains(unitDto.Id))
                 return BadRequest();
             if (!db.Units.Select(x => x.Id).Contains(unitDto.Id))
@@ -121,14 +127,14 @@ namespace ZavodServer.Controllers
             db.Units.Update(updatingUnit);
             updatingUnit.Copy(unitDto);
             db.SaveChanges();
-            return updatingUnit;
+            return Ok(updatingUnit);
         }
 
         /// <summary>
         ///     Delete unit from db
         /// </summary>
         /// <returns>Deleted unit</returns>
-        /// <response code="200">Returns deleted unit</response>
+        /// <response code="204">Returns deleted unit</response>
         /// <response code="404">If unit not found in db</response>
         [HttpDelete("{id}")]
         public ActionResult<Guid> DeleteUnit([FromRoute] Guid id)
@@ -136,7 +142,9 @@ namespace ZavodServer.Controllers
             if(!HttpContext.Items.TryGetValue("email", out var emailObj))
                 return BadRequest();
             var email = emailObj.ToString();
-            var userDb = db.Users.First(x => x.Email == email.ToString());
+            if (!db.Users.Any(x => x.Email == email))
+                return Unauthorized();
+            var userDb = db.Users.First(x => x.Email == email);
             if (!db.Units.Select(x => x.Id).Contains(id))
                 return NotFound(id);
             if (!userDb.Units.Contains(id))
@@ -144,7 +152,7 @@ namespace ZavodServer.Controllers
             userDb.Units.Remove(id);
             db.Units.Remove(db.Units.First(x => x.Id == id));
             db.SaveChanges();
-            return Ok();
+            return NoContent();
         }
 
         /// <summary>
@@ -160,7 +168,9 @@ namespace ZavodServer.Controllers
             if(!HttpContext.Items.TryGetValue("email", out var emailObj))
                 return BadRequest();
             var email = emailObj.ToString();
-            var userUnitIds = db.Users.First(x => x.Email == email.ToString()).Units;
+            if (!db.Users.Any(x => x.Email == email))
+                return Unauthorized();
+            var userUnitIds = db.Users.First(x => x.Email == email).Units;
             var userUnits = db.Units.Where(x => x.CurrentHp > 0 && userUnitIds.Contains(x.Id));
             var defenceUnitsIds = unitAttacks.Select(x => x.DefenceUnitId);
             var defenceUnits = db.Units.Where(x => defenceUnitsIds.Contains(x.Id) && x.CurrentHp > 0);
@@ -181,7 +191,7 @@ namespace ZavodServer.Controllers
                 attackResult.Add(new ResultOfAttackDto{Id = defence.Id, Flag = true, Hp = defence.CurrentHp});
                 db.SaveChanges();
             }
-            return attackResult;
+            return Ok(attackResult);
         }
 
         /// <summary>
@@ -195,7 +205,9 @@ namespace ZavodServer.Controllers
             if(!HttpContext.Items.TryGetValue("email", out var emailObj))
                 return BadRequest();
             var email = emailObj.ToString();
-            var userUnitIds = db.Users.First(x => x.Email == email.ToString()).Units;
+            if (!db.Users.Any(x => x.Email == email))
+                return Unauthorized();
+            var userUnitIds = db.Users.First(x => x.Email == email).Units;
             var userUnits = db.Units.Where(x => userUnitIds.Contains(x.Id) && x.CurrentHp > 0);
             var badMoveResult = new List<MoveUnitDto>();
             foreach (var movingUnit in moveUnits)
@@ -216,7 +228,7 @@ namespace ZavodServer.Controllers
                 db.SaveChanges();
             }
 
-            return badMoveResult;
+            return Ok(badMoveResult);
         }
     }
 }

@@ -14,9 +14,8 @@ namespace ZavodServer.Controllers
 {
     [Produces("application/json")]
     [ApiController]
-    [AllowAnonymous]
     [Route("auth")]
-    public class AuthController : Controller
+    public class AuthController : BaseController
     {
         private readonly DatabaseContext db;
         
@@ -28,39 +27,24 @@ namespace ZavodServer.Controllers
         {
             this.db = db;
         }
-        
-        /// <summary>
-        ///     Authorize person by google
-        /// </summary>
-        /// <returns>redirect to callback</returns>
-        [HttpGet("login")]
-        public ActionResult Login()
-        {
-            return new ChallengeResult(
-                GoogleDefaults.AuthenticationScheme,
-                new AuthenticationProperties
-                {
-                    RedirectUri = Url.Action(nameof(LoginCallback), "Auth")
-                });
-        }
 
-        [HttpGet("LoginCallback")]
-        public ActionResult<UserDb> LoginCallback()
+        /// <summary>
+        ///     Method that register new user or returns existing
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("Register")]
+        public ActionResult<UserDb> Register()
         {
             if(!HttpContext.Items.TryGetValue("email", out var emailObj))
                 return BadRequest();
             var email = emailObj.ToString();
             var user = db.Users.FirstOrDefault(x => x.Email.ToLower().Equals(email.ToLower()));
-            // string userCookie = "";
-            // if (HttpContext.Request.Cookies.ContainsKey(".AspNetCore.Cookies"))
-            //     userCookie = HttpContext.Request.Cookies[".AspNetCore.Cookies"];
-            // return userCookie;
             if (user != null)
                 return user;
             user = new UserDb{Email = email, Id = Guid.NewGuid(), Units = new List<Guid>(), Buildings = new List<Guid>()};
             db.Users.Add(user);
             db.SaveChanges();
-            return user;
+            return Ok(user);
         }
     }
 }
