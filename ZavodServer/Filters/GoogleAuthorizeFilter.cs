@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +17,7 @@ namespace ZavodServer.Filters
         public void OnAuthorization(AuthorizationFilterContext context)
         {
             if(!IsTokenFresh(context))
-             context.Result = new BadRequestResult();
+             context.Result = new UnauthorizedResult();
         }
 
         private static bool IsTokenFresh(ActionContext context)

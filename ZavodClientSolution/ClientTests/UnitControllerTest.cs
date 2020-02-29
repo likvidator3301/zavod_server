@@ -21,12 +21,13 @@ namespace ClientTests
         private Unit client;
         private List<ServerUnitDto> allUnits;
         private List<DefaultServerUnitDto> defaultUnits;
+        
         [OneTimeSetUp]
         public async Task StartServer()
         {
             client = new ZavodClient.ZavodClient("http://localhost:5000").Unit;
             var token =
-                "ya29.Il_AB7MuGvcdRqr4908kn0ZSxMTMPH2aZl3VsrQQH9GvY9oNBm1xPJJebX3HxKt1CA4vYVuau2NARhTtpdwOOVVrHEmkX4dKDeENypIsnDmRLvJWSZ6ss_CRyoEzCDFU4Q";
+                "ya29.Il_ABzZQtWTuXsvSHSLeyH1yN3__kVfoCpeoAauxXMqB1UXjuiAp-atJSwGhzipsnVgWUb3WL7jDldnmOdWznjKefoBYU_lHTo_gSfic7yYKFTkgf5HQIA5bOke88Qju-Q";
             ZavodClient.ZavodClient.Client.DefaultRequestHeaders.Add("token", token);
             Host.CreateDefaultBuilder()
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup(typeof(Startup)); }).Build().RunAsync();
