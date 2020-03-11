@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -53,6 +54,12 @@ namespace ZavodServer.Controllers
                 .Accept
                 .Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
             var result = client.PostAsync("code", new FormUrlEncodedContent(body)).Result;
+            if (result.StatusCode == HttpStatusCode.Forbidden)
+            {
+                //todo что-то сделать   
+                //return ...
+            }
+            
             result.EnsureSuccessStatusCode();
             return JsonSerializer.Deserialize<GoogleAuthDto>(result.Content.ReadAsStringAsync().Result);
         }

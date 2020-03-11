@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Models;
 
 namespace ZavodServer.Models
@@ -6,5 +7,7 @@ namespace ZavodServer.Models
     {
         public AccessAndRefreshTokeDto Tokens { get; set; }
         public UserDb User { get; set; }
+
+        public Status Status { get; set; }
     }
 }
