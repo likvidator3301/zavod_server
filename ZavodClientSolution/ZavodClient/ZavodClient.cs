@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace ZavodClient
 {
@@ -9,6 +10,7 @@ namespace ZavodClient
 
         public Unit Unit;
         public Building Building;
+        public User User;
 
         public ZavodClient(string url)
         {
@@ -16,6 +18,7 @@ namespace ZavodClient
             baseUrl = url;
             Unit = new Unit(baseUrl);
             Building = new Building(baseUrl);
+            User = new User(baseUrl);
         }
     }
 }

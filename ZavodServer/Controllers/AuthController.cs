@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Models;
 using ZavodServer.Filters;
 using ZavodServer.Models;
@@ -34,27 +35,16 @@ namespace ZavodServer.Controllers
             this.db = db;
         }
 
-        /// <summary>
-        ///     Get a code and a url for auth
-        /// </summary>
-        /// <returns>
-        ///     object with code, uri, time expire, device code
-        /// </returns>
         [HttpGet]
-        public ActionResult<GoogleAuthDto> GetAuthCode()
+        [GoogleAuthorizeFilter]
+        public async Task<ActionResult<UserDb>> GetUser()
         {
-            Dictionary<string, string> body = new Dictionary<string, string>();
-            GoogleAuthConfig authConfig = new GoogleAuthConfig();
-            body.Add("client_id", authConfig.ReadConfig().client_id);
-            body.Add("scope", "email");
-            HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri("https://oauth2.googleapis.com/device/");
-            client.DefaultRequestHeaders
-                .Accept
-                .Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
-            var result = client.PostAsync("code", new FormUrlEncodedContent(body)).Result;
-            result.EnsureSuccessStatusCode();
-            return JsonSerializer.Deserialize<GoogleAuthDto>(result.Content.ReadAsStringAsync().Result);
+            if(!HttpContext.Items.TryGetValue("email", out var emailObj))
+                return BadRequest();
+            var email = emailObj.ToString();
+            if (!(await db.Users.AnyAsync(x => x.Email == email)))
+                return Unauthorized();
+            return await db.Users.FirstAsync(x => x.Email.Equals(email));
         }
     }
 }

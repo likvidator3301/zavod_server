@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -26,6 +27,29 @@ namespace ZavodServer.Controllers
         {
             this.db = db;
             authConfig = new GoogleAuthConfig();
+        }
+        
+        /// <summary>
+        ///     Get a code and a url for auth
+        /// </summary>
+        /// <returns>
+        ///     object with code, uri, time expire, device code
+        /// </returns>
+        [HttpGet]
+        public ActionResult<GoogleAuthDto> GetAuthCode()
+        {
+            var body = new Dictionary<string, string>();
+            var googleAuthConfig = new GoogleAuthConfig();
+            body.Add("client_id", googleAuthConfig.ReadConfig().client_id);
+            body.Add("scope", "email");
+            var client = new HttpClient();
+            client.BaseAddress = new Uri("https://oauth2.googleapis.com/device/");
+            client.DefaultRequestHeaders
+                .Accept
+                .Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
+            var result = client.PostAsync("code", new FormUrlEncodedContent(body)).Result;
+            result.EnsureSuccessStatusCode();
+            return JsonSerializer.Deserialize<GoogleAuthDto>(result.Content.ReadAsStringAsync().Result);
         }
         
         /// <summary>

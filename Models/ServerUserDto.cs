@@ -5,9 +5,9 @@ namespace Models
 {
     public class ServerUserDto
     {
-        public Guid Id;
-        public string Email;
-        public List<ServerUnitDto> Units;
-        public List<ServerBuildingDto> Buildings;
+        public Guid Id { get; set; }
+        public string Email { get; set; }
+        public List<Guid> Units { get; set; }
+        public List<Guid> Buildings { get; set; }
     }
 }

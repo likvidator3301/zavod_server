@@ -26,11 +26,14 @@ namespace ClientTests
         public async Task StartServer()
         {
             client = new ZavodClient.ZavodClient("http://localhost:5000").Unit;
-            var token =
-                "ya29.Il_ABzZQtWTuXsvSHSLeyH1yN3__kVfoCpeoAauxXMqB1UXjuiAp-atJSwGhzipsnVgWUb3WL7jDldnmOdWznjKefoBYU_lHTo_gSfic7yYKFTkgf5HQIA5bOke88Qju-Q";
-            ZavodClient.ZavodClient.Client.DefaultRequestHeaders.Add("token", token);
+            // var token =
+            //     "ya29.a0Adw1xeXFijbjqVBapbGX7fe1wICoKFwHXDm5LmyE0WJdErDY28e2EaqgweYtXKSQoDlpYL7puSgyqS6nWnNQDcHikaCGF32p4h44wyfSyQWSmSF0WIv68LIHTmUv9PykZDc3BAmYeHLaf9WTItTha9GD8O3i89hhgl8";
+            // ZavodClient.ZavodClient.Client.DefaultRequestHeaders.Add("token", token);
+            var userClient = new ZavodClient.ZavodClient("http://localhost:5000").User;
             Host.CreateDefaultBuilder()
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup(typeof(Startup)); }).Build().RunAsync();
+            var a  = await userClient.GetNewAccessToken("1//0cEAPecdhSYvCCgYIARAAGAwSNwF-L9Irkwt8nZYlYX5RDE6Yq_nqdkmlQk9opHaqFI3UddInGRQ8ay-YUhcsHjCucqpsWJ5lNCE");
+            
             allUnits = await client.GetAll();
             defaultUnits = await client.GetAllDefaultUnits();
         }
