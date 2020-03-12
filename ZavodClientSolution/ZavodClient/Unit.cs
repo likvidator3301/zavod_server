@@ -20,7 +20,7 @@ namespace ZavodClient
         public Unit(string baseUrl)
         {
             client = ZavodClient.Client;
-            unitUrl = baseUrl + "/units/";
+            unitUrl = baseUrl + "/unit/";
         }
 
         public void AddUnitsToAttack(Guid attackUnit, Guid defenceUnit)

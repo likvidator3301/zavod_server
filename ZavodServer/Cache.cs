@@ -4,8 +4,6 @@ namespace ZavodServer
 {
     public static class Cache
     {
-        public static MemoryCache Cache = new MemoryCache(new MemoryCacheOptions());
-        
-        
+        public static MemoryCache LocalCache = new MemoryCache(new MemoryCacheOptions());
     }
 }

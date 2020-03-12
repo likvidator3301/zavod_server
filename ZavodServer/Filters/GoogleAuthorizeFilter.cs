@@ -25,7 +25,7 @@ namespace ZavodServer.Filters
         {
             context.HttpContext.Request.Headers.TryGetValue("token", out var token);
 
-            if (!Cache.Cache.TryGetValue(token, out _))
+            if (!Cache.LocalCache.TryGetValue(token, out _))
             {
                 HttpClient client = new HttpClient();
                 var uri = new UriBuilder("https://www.googleapis.com/oauth2/v2/userinfo");
@@ -34,11 +34,10 @@ namespace ZavodServer.Filters
                 if (!result.IsSuccessStatusCode)
                     return false;
                 
-                
                 var email = JsonSerializer
                     .Deserialize<GoogleEmailScope>(result.Content.ReadAsStringAsync().Result)
                     .email;
-                Cache.Cache.Set(token, email, TimeSpan.FromMinutes(10));// expiration*2
+                Cache.LocalCache.Set(token, email, TimeSpan.FromMinutes(10));// expiration*2
             }
 
             return true;

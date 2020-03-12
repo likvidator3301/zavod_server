@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -78,16 +79,31 @@ namespace ZavodServer.Controllers
                 .Accept
                 .Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
             var result = client.PostAsync("token", new FormUrlEncodedContent(body)).Result;
-            if (result.IsSuccessStatusCode)
+            var statusCode = Status.Ok;
+            switch (result.StatusCode)
             {
-                var tokens =
-                    JsonSerializer.Deserialize<AccessAndRefreshTokeDto>(result.Content.ReadAsStringAsync().Result);
-                var user = Register(GetEmailFromGoogle(tokens.access_token));
-                if (user == null)
-                    return Unauthorized();
-                return Ok(new PollingResult { Tokens = tokens, User = user});
+                case HttpStatusCode.BadRequest:
+                    statusCode = Status.InvalidGrant;
+                    break;
+                case HttpStatusCode.Unauthorized:
+                    statusCode = Status.InvalidClient;
+                    break;
+                case HttpStatusCode.PreconditionRequired:
+                    statusCode = Status.AuthorizationPending;
+                    break;
+                case HttpStatusCode.Forbidden:
+                    var error =
+                        JsonSerializer.Deserialize<GoogleAuthError>(result.Content.ReadAsStringAsync().Result).error;
+                    statusCode = error == "access_denied" ? Status.AccessDenied : Status.PollingTooFrequently;                    
+                    break;
             }
-            return Unauthorized();
+            if (!result.IsSuccessStatusCode) return Unauthorized();
+            var tokens =
+                JsonSerializer.Deserialize<AccessAndRefreshTokeDto>(result.Content.ReadAsStringAsync().Result);
+            var user = Register(GetEmailFromGoogle(tokens.access_token));
+            if (user == null)
+                return Unauthorized();
+            return Ok(new PollingResult { Tokens = tokens, User = user, Status = statusCode});
         }
         
         private UserDb Register(string email)

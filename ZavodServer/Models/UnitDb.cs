@@ -9,7 +9,7 @@ namespace ZavodServer.Models
     {
         [Key] 
         public Guid Id { get; set; }
-        public Guid SessionId { get; set; }
+        // public Guid SessionId { get; set; }
         [Column(TypeName = "jsonb")] 
         public Vector3 Position { get; set; }
         [Column(TypeName = "jsonb")] 

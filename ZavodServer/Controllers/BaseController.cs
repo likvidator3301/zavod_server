@@ -17,14 +17,14 @@ namespace ZavodServer.Controllers
 
     public class BaseController : Controller
     {
-        protected UserDb User { get; private set; }
+        protected UserDb UserDb { get; private set; }
         protected SessionDb Session { get; }//todo
 
         protected readonly DatabaseContext Db;
 
         public BaseController(DatabaseContext db)
         {
-            this.Db = db;
+            Db = db;
         }
 
 
@@ -33,17 +33,11 @@ namespace ZavodServer.Controllers
             await base.OnActionExecutionAsync(context, next);
 
             context.HttpContext.Request.Headers.TryGetValue("token", out var token);
-            var email = Cache.Cache.Get<string>(token);//хранить объект с expirationDate
+            var email = Cache.LocalCache.Get<string>(token); //хранить объект с expirationDate
 
-            User = await Db.Users.FirstAsync(u => u.Email == email);
-
+            UserDb = await Db.Users.FirstAsync(u => u.Email == email);
         }
     }
 
-    public class SessionDb
-    {
-        public Guid Id;
-        public Guid[] UserId;
-        public int State;
-    }
+    
 }
