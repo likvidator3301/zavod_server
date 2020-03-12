@@ -437,4 +437,4 @@ fabric.properties
 
 ZavodServer/Configs/googleConfig.json
 ZavodServer/Configs/postgresConfig.json
-.Build
+Build
