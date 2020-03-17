@@ -199,7 +199,8 @@ namespace ClientTests
         [Test]
         public async Task UnitMoveToLargeDistanceTest()
         {
-            var unit = allUnits.First(x => x.CurrentHp > 0);
+            
+            var unit = (await client.GetAll()).First(x => x.CurrentHp > 0);
             var newPosition = new Vector3(unit.Position.X + 10, unit.Position.Y + 10, unit.Position.Z + 10);
             client.AddUnitsToMove(unit.Id, newPosition);
             var result = await client.SendMoveUnits();

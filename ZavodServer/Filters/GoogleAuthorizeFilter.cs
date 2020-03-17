@@ -17,12 +17,12 @@ namespace ZavodServer.Filters
         public void OnAuthorization(AuthorizationFilterContext context)
         {
             if(!IsTokenFresh(context))
-             context.Result = new UnauthorizedResult();
+                context.Result = new UnauthorizedResult();
         }
 
         private static bool IsTokenFresh(ActionContext context)
         {
-            HttpClient client = new HttpClient();
+            var client = new HttpClient();
             var uri = new UriBuilder("https://www.googleapis.com/oauth2/v2/userinfo");
             context.HttpContext.Request.Headers.TryGetValue("token", out var token);
             uri.Query = "access_token="+token;
