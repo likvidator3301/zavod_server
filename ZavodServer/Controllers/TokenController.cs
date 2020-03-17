@@ -122,7 +122,7 @@ namespace ZavodServer.Controllers
             }
             if (!result.IsSuccessStatusCode) return Unauthorized();
             var tokens =
-                JsonSerializer.Deserialize<AccessAndRefreshTokeDto>(await result.Content.ReadAsStringAsync());
+                JsonSerializer.Deserialize<AccessAndRefreshTokenDto>(await result.Content.ReadAsStringAsync());
             var user = await Register(await GetEmailFromGoogle(tokens.access_token));
             if (user == null)
                 return Unauthorized();

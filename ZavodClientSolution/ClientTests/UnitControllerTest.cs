@@ -108,13 +108,9 @@ namespace ClientTests
         [Test]
         public async Task DeleteUnitTest()
         {
-            foreach(var unit in allUnits)
-            {
-                var result = await client.DeleteUnit(unit.Id);
-                result.Should().BeEquivalentTo(HttpStatusCode.OK);
-                allUnits.RemoveAt(0);
-                return;
-            }
+            var unit = await client.CreateUnit(new CreateUnitDto{UnitType = UnitType.Warrior, Position = new Vector3{X =15, Y = 25,Z = 10}});
+            var result = await client.DeleteUnit(unit.Id);
+            result.Should().BeEquivalentTo(HttpStatusCode.OK);
         }
         
         [Test]

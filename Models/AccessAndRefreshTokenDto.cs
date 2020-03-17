@@ -1,6 +1,6 @@
 namespace Models
 {
-    public class AccessAndRefreshTokeDto
+    public class AccessAndRefreshTokenDto
     {
         public string access_token { get; set; }        
         public int expires_in { get; set; }
