@@ -1,28 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Security.Claims;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Models;
-using ZavodServer.Filters;
+using Microsoft.EntityFrameworkCore;
 using ZavodServer.Models;
 
 namespace ZavodServer.Controllers
 {
-    [Produces("application/json")]
-    [ApiController]
-    [Route("auth")]
-    public class AuthController : ControllerBase
+    public class AuthController : BaseController
     {
         private readonly DatabaseContext db;
         
@@ -30,38 +13,20 @@ namespace ZavodServer.Controllers
         ///     AuthController constructor, that assign database context
         /// </summary>
         /// <param name="db">database context</param>
-        public AuthController(DatabaseContext db)
+        public AuthController(DatabaseContext db): base(db)
         {
             this.db = db;
         }
-
-        /// <summary>
-        ///     Get a code and a url for auth
-        /// </summary>
-        /// <returns>
-        ///     object with code, uri, time expire, device code
-        /// </returns>
+        
         [HttpGet]
-        public ActionResult<GoogleAuthDto> GetAuthCode()
+        public async Task<ActionResult<UserDb>> GetUser()
         {
-            Dictionary<string, string> body = new Dictionary<string, string>();
-            GoogleAuthConfig authConfig = new GoogleAuthConfig();
-            body.Add("client_id", authConfig.ReadConfig().client_id);
-            body.Add("scope", "email");
-            HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri("https://oauth2.googleapis.com/device/");
-            client.DefaultRequestHeaders
-                .Accept
-                .Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
-            var result = client.PostAsync("code", new FormUrlEncodedContent(body)).Result;
-            if (result.StatusCode == HttpStatusCode.Forbidden)
-            {
-                //todo что-то сделать   
-                //return ...
-            }
-            
-            result.EnsureSuccessStatusCode();
-            return JsonSerializer.Deserialize<GoogleAuthDto>(result.Content.ReadAsStringAsync().Result);
+            if(!HttpContext.Items.TryGetValue("email", out var emailObj))
+                return BadRequest();
+            var email = emailObj.ToString();
+            if (!(await db.Users.AnyAsync(x => x.Email == email)))
+                return Unauthorized();
+            return await db.Users.FirstAsync(x => x.Email.Equals(email));
         }
     }
 }

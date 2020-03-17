@@ -1,11 +1,9 @@
 using System;
-using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Primitives;
 
 namespace ZavodServer.Filters
 {
@@ -27,9 +25,11 @@ namespace ZavodServer.Filters
 
             if (!Cache.LocalCache.TryGetValue(token, out _))
             {
-                HttpClient client = new HttpClient();
-                var uri = new UriBuilder("https://www.googleapis.com/oauth2/v2/userinfo");
-                uri.Query = "access_token=" + token;
+                var client = new HttpClient();
+                var uri = new UriBuilder("https://www.googleapis.com/oauth2/v2/userinfo")
+                {
+                    Query = "access_token=" + token
+                };
                 var result = client.GetAsync(uri.Uri).Result;
                 if (!result.IsSuccessStatusCode)
                     return false;

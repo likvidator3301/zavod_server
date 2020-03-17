@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Models;
 using ZavodServer.Filters;
 using ZavodServer.Models;
@@ -30,13 +31,35 @@ namespace ZavodServer.Controllers
         }
         
         /// <summary>
+        ///     Get a code and a url for auth
+        /// </summary>
+        /// <returns>
+        ///     object with code, uri, time expire, device code
+        /// </returns>
+        [HttpGet]
+        public async Task<ActionResult<GoogleAuthDto>> GetAuthCode()
+        {
+            var body = new Dictionary<string, string>();
+            var googleAuthConfig = new GoogleAuthConfig();
+            body.Add("client_id", googleAuthConfig.ReadConfig().client_id);
+            body.Add("scope", "email");
+            var client = new HttpClient {BaseAddress = new Uri("https://oauth2.googleapis.com/device/")};
+            client.DefaultRequestHeaders
+                .Accept
+                .Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
+            var result = await client.PostAsync("code", new FormUrlEncodedContent(body));
+            result.EnsureSuccessStatusCode();
+            return JsonSerializer.Deserialize<GoogleAuthDto>(await result .Content.ReadAsStringAsync());
+        }
+
+        /// <summary>
         ///     Updating access token
         /// </summary>
         /// <returns>
         ///    Object with new access token and scopes, and time expire
         /// </returns>
         [HttpPost("refreshToken")]
-        public ActionResult<AccessTokenDto> GetNewAccessToken([FromBody] string refreshToken)
+        public async Task<ActionResult<AccessTokenDto>> GetNewAccessToken([FromBody] string refreshToken)
         {
             var body = new Dictionary<string, string>
             {
@@ -49,9 +72,9 @@ namespace ZavodServer.Controllers
             client.DefaultRequestHeaders
                 .Accept
                 .Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
-            var result = client.PostAsync("token", new FormUrlEncodedContent(body)).Result;
+            var result = await client.PostAsync("token", new FormUrlEncodedContent(body));
             if(result.IsSuccessStatusCode)
-                return Ok(JsonSerializer.Deserialize<AccessTokenDto>(result.Content.ReadAsStringAsync().Result));
+                return Ok(JsonSerializer.Deserialize<AccessTokenDto>(await result.Content.ReadAsStringAsync()));
             return Unauthorized();
         }
         
@@ -65,7 +88,7 @@ namespace ZavodServer.Controllers
         ///    Object with new user and tokens
         /// </returns>
         [HttpPost("pollGoogle")]
-        public ActionResult<PollingResult> PollGoogle([FromBody] string deviceCode)
+        public async Task<ActionResult<PollingResult>> PollGoogle([FromBody] string deviceCode)
         {
             var body = new Dictionary<string, string>
             {
@@ -78,7 +101,7 @@ namespace ZavodServer.Controllers
             client.DefaultRequestHeaders
                 .Accept
                 .Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
-            var result = client.PostAsync("token", new FormUrlEncodedContent(body)).Result;
+            var result = await client.PostAsync("token", new FormUrlEncodedContent(body));
             var statusCode = Status.Ok;
             switch (result.StatusCode)
             {
@@ -93,41 +116,41 @@ namespace ZavodServer.Controllers
                     break;
                 case HttpStatusCode.Forbidden:
                     var error =
-                        JsonSerializer.Deserialize<GoogleAuthError>(result.Content.ReadAsStringAsync().Result).error;
+                        JsonSerializer.Deserialize<GoogleAuthError>(await result.Content.ReadAsStringAsync()).error;
                     statusCode = error == "access_denied" ? Status.AccessDenied : Status.PollingTooFrequently;                    
                     break;
             }
             if (!result.IsSuccessStatusCode) return Unauthorized();
             var tokens =
-                JsonSerializer.Deserialize<AccessAndRefreshTokeDto>(result.Content.ReadAsStringAsync().Result);
-            var user = Register(GetEmailFromGoogle(tokens.access_token));
+                JsonSerializer.Deserialize<AccessAndRefreshTokeDto>(await result.Content.ReadAsStringAsync());
+            var user = await Register(await GetEmailFromGoogle(tokens.access_token));
             if (user == null)
                 return Unauthorized();
             return Ok(new PollingResult { Tokens = tokens, User = user, Status = statusCode});
         }
         
-        private UserDb Register(string email)
+        private async Task<UserDb> Register(string email)
         {
             if (email == null)
                 return null;
-            var user = db.Users.FirstOrDefault(x => x.Email.ToLower().Equals(email.ToLower()));
+            var user = await db.Users.FirstOrDefaultAsync(x => x.Email.ToLower().Equals(email.ToLower()));
             if (user != null)
                 return user;
             user = new UserDb{Email = email, Id = Guid.NewGuid(), Units = new List<Guid>(), Buildings = new List<Guid>()};
             db.Users.Add(user);
-            db.SaveChanges();
+            await db.SaveChangesAsync();
             return user;
         }
 
-        private string GetEmailFromGoogle(string accessToken)
+        private static async Task<string> GetEmailFromGoogle(string accessToken)
         {
-            HttpClient client = new HttpClient();
+            var client = new HttpClient();
             var uri = new UriBuilder("https://www.googleapis.com/oauth2/v2/userinfo");
             uri.Query = "access_token="+accessToken;
-            var result = client.GetAsync(uri.Uri).Result;
+            var result = await client.GetAsync(uri.Uri);
             if(result.IsSuccessStatusCode)
                 return JsonSerializer
-                    .Deserialize<GoogleEmailScope>(result.Content.ReadAsStringAsync().Result)
+                    .Deserialize<GoogleEmailScope>(await result.Content.ReadAsStringAsync())
                     .email;
             return null;
         }

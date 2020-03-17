@@ -9,13 +9,15 @@ namespace ZavodClient
 
         public Unit Unit;
         public Building Building;
-
+        public User User;
+        
         public ZavodClient(string url)
         {
             Client = new HttpClient();
             baseUrl = url;
             Unit = new Unit(baseUrl);
             Building = new Building(baseUrl);
+            User = new User(baseUrl);
         }
     }
 }
