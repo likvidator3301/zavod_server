@@ -21,9 +21,7 @@ namespace ZavodServer.Controllers
         [HttpGet]
         public async Task<ActionResult<UserDb>> GetUser()
         {
-            if(!HttpContext.Items.TryGetValue("email", out var emailObj))
-                return BadRequest();
-            var email = emailObj.ToString();
+            var email = UserDb.Email;
             if (!(await db.Users.AnyAsync(x => x.Email == email)))
                 return Unauthorized();
             return await db.Users.FirstAsync(x => x.Email.Equals(email));

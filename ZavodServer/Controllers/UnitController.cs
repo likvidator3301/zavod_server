@@ -149,7 +149,7 @@ namespace ZavodServer.Controllers
             var defenceUnitsIds = unitAttacks.Select(x => x.DefenceUnitId);
             var defenceUnits = Db.Units.Where(x =>
                 defenceUnitsIds.Contains(x.Id) && x.CurrentHp > 0);
-            List<ResultOfAttackDto> attackResult = new List<ResultOfAttackDto>();
+            var attackResult = new List<ResultOfAttackDto>();
             foreach (var unitAttack in unitAttacks)
             {
                 var attack = await userUnits.FirstOrDefaultAsync(x => x.Id.Equals(unitAttack.AttackUnitId));

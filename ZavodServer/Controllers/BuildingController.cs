@@ -51,6 +51,7 @@ namespace ZavodServer.Controllers
             var building = await Db.Buildings.FirstOrDefaultAsync(x => x.Id == id);
             if (building == null)
                 return NotFound(id);
+            UserDb.Buildings.Remove(building.Id);
             Db.Buildings.Remove(building);
             await Db.SaveChangesAsync();
             return Ok();
