@@ -1,28 +1,20 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Models;
 using ZavodServer.Models;
 
 namespace ZavodServer.Controllers
 {
-    [Produces("application/json")]
-    [ApiController]
-    [Route("buildings")]
     public class BuildingController : BaseController
     {
-        private readonly DatabaseContext db;
-
         /// <summary>
         ///     BuildingController constructor, that assign database context
         /// </summary>
         /// <param name="db">database context</param>
-        public BuildingController(DatabaseContext db)
+        public BuildingController(DatabaseContext db): base(db)
         {
-            this.db = db;
         }
         
         /// <summary>
@@ -32,22 +24,16 @@ namespace ZavodServer.Controllers
         /// Объект создаваемого здания: его тип и позиция</param>
         /// <returns></returns>
         [HttpPost]
-        public ActionResult<BuildingDb> CreateBuilding([FromBody] CreateBuildingDto building)
+        public async Task<ActionResult<BuildingDb>> CreateBuilding([FromBody] CreateBuildingDto building)
         {
-            if(!HttpContext.Items.TryGetValue("email", out var emailObj))
-                return BadRequest();
-            var email = emailObj.ToString();
-            if (!db.Users.Any(x => x.Email == email))
-                return Unauthorized();
-            var userDb = db.Users.First(x => x.Email == email);
-            if (!db.DefaultBuildings.Select(x => x.Type).Contains(building.BuildingType))
+            var buildingDto = (await Db.DefaultBuildings.FirstOrDefaultAsync(x => x.Type == building.BuildingType))?.BuildingDto;
+            if (buildingDto == null)
                 return NotFound(building.BuildingType);
-            var buildingDto = db.DefaultBuildings.First(x => x.Type == building.BuildingType).BuildingDto;
             buildingDto.Id = Guid.NewGuid();
             buildingDto.Position = building.Position;
-            db.Buildings.Add(buildingDto);
-            userDb.Buildings.Add(buildingDto.Id);
-            db.SaveChanges();
+            Db.Buildings.Add(buildingDto);
+            UserDb.Buildings.Add(buildingDto.Id);
+            await Db.SaveChangesAsync();
             return buildingDto;
         }
         
@@ -58,18 +44,16 @@ namespace ZavodServer.Controllers
         /// Гуид здания</param>
         /// <returns></returns>
         [HttpDelete]
-        public ActionResult<BuildingDb> DeleteBuilding([FromRoute] Guid id)
+        public async Task<ActionResult<BuildingDb>> DeleteBuilding([FromRoute] Guid id)
         {
-            if(!HttpContext.Items.TryGetValue("email", out var emailObj))
+            if (!UserDb.Buildings.Contains(id))
                 return BadRequest();
-            var email = emailObj.ToString();
-            var userDb = db.Users.First(x => x.Email == email);
-            if (!userDb.Buildings.Contains(id))
-                return BadRequest();
-            if (!db.Buildings.Select(x => x.Id).Contains(id))
+            var building = await Db.Buildings.FirstOrDefaultAsync(x => x.Id == id);
+            if (building == null)
                 return NotFound(id);
-            db.Buildings.Remove(db.Buildings.First(x => x.Id == id));
-            db.SaveChanges();
+            UserDb.Buildings.Remove(building.Id);
+            Db.Buildings.Remove(building);
+            await Db.SaveChangesAsync();
             return Ok();
         }
     }

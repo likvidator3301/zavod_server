@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Timers;
 using Models;
@@ -34,7 +33,7 @@ namespace ZavodClient
         {
             if (IsRegistered)
             {
-                var token = (await GetNewAccessToken(ReadRefreshToken())).access_token;
+                var token = (await GetNewAccessToken(await ReadRefreshToken())).access_token;
                 client.DefaultRequestHeaders.Add("token", token);
                 var response = await client.GetAsync(authUrl);
                 response.EnsureSuccessStatusCode();
@@ -59,21 +58,23 @@ namespace ZavodClient
             if (!response.IsSuccessStatusCode) return;
             timer.Stop();
             var result = await response.Content.ReadAsAsync<PollingResult>();
-            File.WriteAllText(Path, JsonConvert.SerializeObject(new SavedRefreshToken{refreshToken = result.Tokens.refresh_token}));
+            using (var streamWriter = new StreamWriter(Path, false, System.Text.Encoding.UTF8))
+                await streamWriter.WriteAsync(JsonConvert.SerializeObject(new SavedRefreshToken{refreshToken = result.Tokens.refresh_token}));
             OnRegisterSuccessful(result.User);
         }
 
-        private string ReadRefreshToken()
+        private async Task<string> ReadRefreshToken()
         {
-            string token = null;
-            if (File.Exists(Path))
-                token = JsonConvert.DeserializeObject<SavedRefreshToken>(File.ReadAllText(Path)).refreshToken;
+            if (!File.Exists(Path)) return null;            
+            string token;
+            using (var streamReader = new StreamReader(Path, System.Text.Encoding.UTF8))
+                token = JsonConvert.DeserializeObject<SavedRefreshToken>(await streamReader.ReadToEndAsync()).refreshToken;
             return token;
         }
         
         public async Task<AccessTokenDto> GetNewAccessToken(string refreshToken)
         {
-            var response = await client.PostAsJsonAsync(userUrl +"refreshToken", refreshToken);
+            var response = await client.PostAsJsonAsync($"{userUrl}refreshToken", refreshToken);
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadAsAsync<AccessTokenDto>();
             client.DefaultRequestHeaders.Add("token", result.access_token);

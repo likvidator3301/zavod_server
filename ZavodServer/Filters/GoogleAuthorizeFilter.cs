@@ -1,10 +1,9 @@
 using System;
-using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ZavodServer.Filters
 {
@@ -22,16 +21,26 @@ namespace ZavodServer.Filters
 
         private static bool IsTokenFresh(ActionContext context)
         {
-            HttpClient client = new HttpClient();
-            var uri = new UriBuilder("https://www.googleapis.com/oauth2/v2/userinfo");
             context.HttpContext.Request.Headers.TryGetValue("token", out var token);
-            uri.Query = "access_token="+token;
-            var result = client.GetAsync(uri.Uri).Result;
-            var email = JsonSerializer
-                .Deserialize<GoogleEmailScope>(result.Content.ReadAsStringAsync().Result)
-                .email;
-            context.HttpContext.Items.Add("email", email);
-            return result.IsSuccessStatusCode;
+
+            if (!Cache.LocalCache.TryGetValue(token, out _))
+            {
+                var client = new HttpClient();
+                var uri = new UriBuilder("https://www.googleapis.com/oauth2/v2/userinfo")
+                {
+                    Query = "access_token=" + token
+                };
+                var result = client.GetAsync(uri.Uri).Result;
+                if (!result.IsSuccessStatusCode)
+                    return false;
+                
+                var email = JsonSerializer
+                    .Deserialize<GoogleEmailScope>(result.Content.ReadAsStringAsync().Result)
+                    .email;
+                Cache.LocalCache.Set(token, email, TimeSpan.FromMinutes(10));// expiration*2
+            }
+
+            return true;
         }
     }
     
