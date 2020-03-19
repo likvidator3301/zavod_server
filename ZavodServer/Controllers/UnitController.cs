@@ -165,9 +165,9 @@ namespace ZavodServer.Controllers
                 Db.Units.Update(defence);
                 defence.CurrentHp -= attack.AttackDamage;
                 attackResult.Add(new ResultOfAttackDto {Id = defence.Id, Flag = true, Hp = defence.CurrentHp});
-                await Db.SaveChangesAsync();
             }
-
+            
+            await Db.SaveChangesAsync();
             return Ok(attackResult);
         }
 
@@ -198,9 +198,9 @@ namespace ZavodServer.Controllers
 
                 Db.Units.Update(movesUnit);
                 movesUnit.Position = newPosition;
-                await Db.SaveChangesAsync();
             }
-
+            
+            await Db.SaveChangesAsync();
             return Ok(badMoveResult);
         }
     }

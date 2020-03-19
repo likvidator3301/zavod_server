@@ -33,7 +33,7 @@ namespace ZavodClient
         {
             if (IsRegistered)
             {
-                var token = (await GetNewAccessToken(await ReadRefreshToken())).access_token;
+                var token = (await GetNewAccessToken(ReadRefreshToken())).access_token;
                 client.DefaultRequestHeaders.Add("token", token);
                 var response = await client.GetAsync(authUrl);
                 response.EnsureSuccessStatusCode();
@@ -58,18 +58,15 @@ namespace ZavodClient
             if (!response.IsSuccessStatusCode) return;
             timer.Stop();
             var result = await response.Content.ReadAsAsync<PollingResult>();
-            using (var streamWriter = new StreamWriter(Path, false, System.Text.Encoding.UTF8))
-                await streamWriter.WriteAsync(JsonConvert.SerializeObject(new SavedRefreshToken{refreshToken = result.Tokens.refresh_token}));
+            File.WriteAllText(Path, JsonConvert.SerializeObject(new SavedRefreshToken{refreshToken = result.Tokens.refresh_token}));
             OnRegisterSuccessful(result.User);
         }
 
-        private async Task<string> ReadRefreshToken()
+        private string ReadRefreshToken()
         {
             if (!File.Exists(Path)) return null;            
-            string token;
-            using (var streamReader = new StreamReader(Path, System.Text.Encoding.UTF8))
-                token = JsonConvert.DeserializeObject<SavedRefreshToken>(await streamReader.ReadToEndAsync()).refreshToken;
-            return token;
+            var token = File.ReadAllText(Path);
+            return JsonConvert.DeserializeObject<SavedRefreshToken>(token).refreshToken;;
         }
         
         public async Task<AccessTokenDto> GetNewAccessToken(string refreshToken)
