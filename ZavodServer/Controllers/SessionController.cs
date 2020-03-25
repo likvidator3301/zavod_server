@@ -45,7 +45,6 @@ namespace ZavodServer.Controllers
             var newSession = new SessionDb { Id = Guid.NewGuid(), State = SessionState.Preparing, Players = new List<Player>{player}};
             UserDb.SessionId = newSession.Id;
             Db.Sessions.Add(newSession);
-            await Db.SaveChangesAsync();
             return Ok(newSession);
         }
 
@@ -69,7 +68,6 @@ namespace ZavodServer.Controllers
             Db.Sessions.Update(enteringSession);
             UserDb.SessionId = enteringSession.Id;
             enteringSession.Players.Add(player);
-            await Db.SaveChangesAsync();
             return Ok(enteringSession);
         }
 
@@ -91,7 +89,6 @@ namespace ZavodServer.Controllers
                 return BadRequest();
             Db.Sessions.Update(enteringSession);
             enteringSession.State = SessionState.InGame;
-            await Db.SaveChangesAsync();
             return Ok(enteringSession);
         }
 
@@ -116,7 +113,6 @@ namespace ZavodServer.Controllers
                 player.User.SessionId = Guid.Empty;
             }
             Db.Sessions.Remove(deletingSession);
-            await Db.SaveChangesAsync();
             return Ok();
         }
     }

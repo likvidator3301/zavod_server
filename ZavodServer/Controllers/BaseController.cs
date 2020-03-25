@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -33,6 +35,9 @@ namespace ZavodServer.Controllers
             UserDb = await Db.Users.FirstAsync(u => u.Email == email);
             Session = await Db.Sessions.FirstOrDefaultAsync(x => x.Id.Equals(UserDb.SessionId));
             await next();
+            if (Session != null)
+                Session.Players.First(x => x.User.Id.Equals(UserDb.Id)).LastTimeActivity = DateTimeOffset.Now;
+            await Db.SaveChangesAsync();
         }
     }
 }

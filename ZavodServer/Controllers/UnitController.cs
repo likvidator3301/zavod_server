@@ -90,7 +90,6 @@ namespace ZavodServer.Controllers
             unitDto.OwnerId = UserDb.Id;
             unitDto.SessionId = Session.Id;
             Db.Units.Add(unitDto);
-            await Db.SaveChangesAsync();
             return Ok(unitDto);
         }
 
@@ -113,7 +112,6 @@ namespace ZavodServer.Controllers
                 return NotFound(unitDto);
             Db.Units.Update(updatingUnit);
             updatingUnit.Copy(unitDto);
-            await Db.SaveChangesAsync();
             return Ok(updatingUnit);
         }
 
@@ -133,7 +131,6 @@ namespace ZavodServer.Controllers
             if (unit == null)
                 return NotFound();
             Db.Units.Remove(unit);
-            await Db.SaveChangesAsync();
             return NoContent();
         }
 
@@ -172,7 +169,6 @@ namespace ZavodServer.Controllers
                 attackResult.Add(new ResultOfAttackDto {Id = defence.Id, Flag = true, Hp = defence.CurrentHp});
             }
             
-            await Db.SaveChangesAsync();
             return Ok(attackResult);
         }
 
@@ -208,7 +204,6 @@ namespace ZavodServer.Controllers
                 movesUnit.Position = newPosition;
             }
             
-            await Db.SaveChangesAsync();
             return Ok(badMoveResult);
         }
     }

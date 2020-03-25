@@ -55,7 +55,6 @@ namespace ZavodServer.Controllers
             buildingDto.OwnerId = UserDb.Id;
             buildingDto.SessionId = Session.Id;
             Db.Buildings.Add(buildingDto);
-            await Db.SaveChangesAsync();
             return buildingDto;
         }
         
@@ -77,7 +76,6 @@ namespace ZavodServer.Controllers
             if (building == null)
                 return NotFound(id);
             Db.Buildings.Remove(building);
-            await Db.SaveChangesAsync();
             return Ok();
         }
     }
