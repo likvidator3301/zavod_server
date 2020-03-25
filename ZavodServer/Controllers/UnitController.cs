@@ -16,9 +16,7 @@ namespace ZavodServer.Controllers
         ///     UnitController constructor, that assign database context
         /// </summary>
         /// <param name="db">database context</param>
-        public UnitController(DatabaseContext db) : base(db)
-        {
-        }
+        public UnitController(DatabaseContext db) : base(db){}
 
         /// <summary>
         ///     Returns all units
@@ -28,7 +26,7 @@ namespace ZavodServer.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<UnitDb>> GetAll()
         {
-            IEnumerable<UnitDb> result = Db.Units.Select(x => x);
+            IEnumerable<UnitDb> result = Db.Units.Where(x => x.SessionId.Equals(Session.Id));
             return Ok(result);
         }
 
@@ -82,15 +80,16 @@ namespace ZavodServer.Controllers
         [HttpPost]
         public async Task<ActionResult<UnitDb>> CreateUnit([FromBody] CreateUnitDto createUnit)
         {
-            if (!Db.DefaultUnits.Select(x => x.Type).Contains(createUnit.UnitType))
-                return NotFound(createUnit.UnitType);
+            if (Session == null)
+                return BadRequest();
             var unitDto = (await Db.DefaultUnits.FirstOrDefaultAsync(x => x.Type == createUnit.UnitType))?.UnitDto;
             if (unitDto == null)
-                return NotFound("No units that type");
+                return NotFound(createUnit.UnitType);
             unitDto.Id = Guid.NewGuid();
             unitDto.Position = new Vector3(createUnit.Position.X, createUnit.Position.Y, createUnit.Position.Z);
+            unitDto.OwnerId = UserDb.Id;
+            unitDto.SessionId = Session.Id;
             Db.Units.Add(unitDto);
-            UserDb.Units.Add(unitDto.Id);
             await Db.SaveChangesAsync();
             return Ok(unitDto);
         }
@@ -104,7 +103,10 @@ namespace ZavodServer.Controllers
         [HttpPut]
         public async Task<ActionResult<UnitDb>> UpdateUnit([FromBody] UnitDb unitDto)
         {
-            if (!UserDb.Units.Contains(unitDto.Id))
+            if (Session == null)
+                return BadRequest();
+            if (await Db.Units.FirstOrDefaultAsync(x => 
+                x.Id.Equals(unitDto.Id) && x.SessionId.Equals(Session.Id) && x.OwnerId.Equals(UserDb.Id)) == null)
                 return BadRequest();
             var updatingUnit = await Db.Units.FirstOrDefaultAsync(x => x.Id == unitDto.Id);
             if (updatingUnit == null)
@@ -124,12 +126,13 @@ namespace ZavodServer.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Guid>> DeleteUnit([FromRoute] Guid id)
         {
-            if (!Db.Units.Select(x => x.Id).Contains(id))
-                return NotFound(id);
-            if (!UserDb.Units.Contains(id))
+            if (Session == null)
                 return BadRequest();
-            UserDb.Units.Remove(id);
-            Db.Units.Remove(Db.Units.First(x => x.Id == id));
+            var unit = await Db.Units.FirstOrDefaultAsync(x =>
+                x.Id.Equals(id) && x.SessionId.Equals(Session.Id) && x.OwnerId.Equals(UserDb.Id));
+            if (unit == null)
+                return NotFound();
+            Db.Units.Remove(unit);
             await Db.SaveChangesAsync();
             return NoContent();
         }
@@ -144,8 +147,10 @@ namespace ZavodServer.Controllers
         [HttpPost("attack")]
         public async Task<ActionResult<IEnumerable<ResultOfAttackDto>>> AttackUnit([FromBody] params AttackUnitDto[] unitAttacks)
         {
+            if (Session == null)
+                return BadRequest();
             var userUnits = Db.Units.Where(x =>
-                x.CurrentHp > 0 && UserDb.Units.Contains(x.Id));
+                x.Id.Equals(UserDb.Id) && x.CurrentHp > 0 && x.SessionId.Equals(Session.Id) && x.OwnerId.Equals(UserDb.Id));
             var defenceUnitsIds = unitAttacks.Select(x => x.DefenceUnitId);
             var defenceUnits = Db.Units.Where(x =>
                 defenceUnitsIds.Contains(x.Id) && x.CurrentHp > 0);
@@ -179,13 +184,16 @@ namespace ZavodServer.Controllers
         [HttpPost("move")]
         public async Task<ActionResult<IEnumerable<MoveUnitDto>>> MoveUnit([FromBody] params MoveUnitDto[] moveUnits)
         {
-            var email = UserDb.Email;
-            var userUnitIds = (await Db.Users.FirstAsync(x => x.Email == email)).Units;
-            var userUnits = Db.Units.Where(x => userUnitIds.Contains(x.Id) && x.CurrentHp > 0);
+            if (Session == null)
+                return BadRequest();
+            var userUnits = Db.Units.Where(x =>
+                x.Id.Equals(UserDb.Id) && x.CurrentHp > 0 && x.SessionId.Equals(Session.Id) && x.OwnerId.Equals(UserDb.Id));
             var badMoveResult = new List<MoveUnitDto>();
             foreach (var movingUnit in moveUnits)
             {
-                var movesUnit = await userUnits.FirstOrDefaultAsync(x => x.Id == movingUnit.Id);
+                var movesUnit =
+                    await userUnits.FirstOrDefaultAsync(x =>
+                        x.Id.Equals(movingUnit.Id) && x.SessionId.Equals(Session.Id));
                 if (movesUnit == null)
                     continue;
                 var oldPosition = movesUnit.Position;

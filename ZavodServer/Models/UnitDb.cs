@@ -22,6 +22,10 @@ namespace ZavodServer.Models
         public float MaxHp { get; set; }
         public float CurrentHp { get; set; }
         public float LastAttackTime { get; set; }
+        public Guid OwnerId { get; set; }
+        public Guid SessionId { get; set; }
+        [Column(TypeName = "jsonb")] 
+        public Currency Cost { get; set; }
 
         public override string ToString()
         {
@@ -30,7 +34,8 @@ namespace ZavodServer.Models
                 $"Rotation: x: {Rotation.X} y: {Rotation.Y} z: {Rotation.Z}, Type: {Type}, " +
                 $"AttackDamage: {AttackDamage}, AttackDelay: {AttackDelay}, AttackRange: {AttackRange}, " +
                 $"Defense: {Defense}, MoveSpeed: {MoveSpeed}, MaxHp: {MaxHp}, CurrentHp: {CurrentHp}, " +
-                $"LastAttackTime: {LastAttackTime}";
+                $"LastAttackTime: {LastAttackTime}, Cost: {Cost}, OwnerId: {OwnerId}, SessionId: {SessionId}";
+
         }
 
         public void Copy(UnitDb unitDto)
