@@ -36,7 +36,7 @@ namespace ZavodServer.Controllers
             Session = await Db.Sessions.FirstOrDefaultAsync(x => x.Id.Equals(UserDb.SessionId));
             await next();
             if (Session != null)
-                Session.Players.First(x => x.User.Id.Equals(UserDb.Id)).LastTimeActivity = DateTimeOffset.Now;
+                Session.Players.First(x => x.Id.Equals(UserDb.MyPlayer.Id)).LastTimeActivity = DateTimeOffset.Now;
             await Db.SaveChangesAsync();
         }
     }

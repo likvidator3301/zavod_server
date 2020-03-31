@@ -136,7 +136,7 @@ namespace ZavodServer.Controllers
             var user = await db.Users.FirstOrDefaultAsync(x => x.Email.ToLower().Equals(email.ToLower()));
             if (user != null)
                 return user;
-            user = new UserDb{Email = email, Id = Guid.NewGuid(), Currencies = new List<Currency>(), SessionId = Guid.Empty};
+            user = new UserDb{Email = email, Id = Guid.NewGuid(), SessionId = Guid.Empty};
             db.Users.Add(user);
             return user;
         }

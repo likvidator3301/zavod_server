@@ -23,8 +23,13 @@ namespace ZavodServer.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<SessionDb>> GetAllSessions() => Ok(Db.Sessions.Select(x => x));
 
+        /// <summary>
+        ///     Возвращает конкретную сессию по Id
+        /// </summary>
+        /// <param name="id">Id сессии, которую хотите получить</param>
+        /// <returns>Сессию с Id переданным в запросе</returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<SessionDb>>> GetSession([FromQuery] Guid id)
+        public async Task<ActionResult<SessionDb>> GetSession([FromQuery] Guid id)
         {
             var result = await Db.Sessions.FirstOrDefaultAsync(x => x.Id.Equals(id));
             if (result == null)
@@ -35,42 +40,60 @@ namespace ZavodServer.Controllers
         /// <summary>
         ///     Создаёт новую сессию
         /// </summary>
-        /// <returns>
-        ///    Новую сессию
-        /// </returns>
         [HttpPost]
-        public async Task<ActionResult<SessionDb>> CreateNewSession()
+        public ActionResult CreateNewSession([FromBody]string mapName)
         {
-            var player = new Player {LastTimeActivity = DateTimeOffset.UtcNow, User = UserDb};
-            var newSession = new SessionDb { Id = Guid.NewGuid(), State = SessionState.Preparing, Players = new List<Player>{player}};
-            UserDb.SessionId = newSession.Id;
+            var newSession = new SessionDb { Id = Guid.NewGuid(), State = SessionState.Preparing, 
+                Players = new List<Player>(), GameMap = MapContainer.maps.First(x=>x.Name.Equals(mapName))};
             Db.Sessions.Add(newSession);
-            return Ok(newSession);
+            return Ok();
         }
 
         /// <summary>
         ///     Добавляет в сессию игрока
         /// </summary>
-        /// <param name="sessionId">
-        ///    Id сессии
+        /// <param name="enterSessionRequest">
+        ///    Объект с именем игрока и id сессии
         /// </param>
-        /// <returns>
-        ///    Сессию с новым игроком
-        /// </returns>
         [HttpPost("enter")]
-        public async Task<ActionResult<SessionDb>> EnterSession([FromQuery] Guid sessionId)
+        public async Task<ActionResult> EnterSession([FromBody] EnterSessionRequest enterSessionRequest)
         {
-            var player = new Player {LastTimeActivity = DateTimeOffset.UtcNow, User = UserDb};
+            var player = new Player {LastTimeActivity = DateTimeOffset.UtcNow, 
+                Nickname = enterSessionRequest.Nickname, Id = Guid.NewGuid()};
             var enteringSession = await Db.Sessions.FirstOrDefaultAsync(x => 
-                x.Id.Equals(sessionId) && x.State.Equals(SessionState.Preparing));
+                x.Id.Equals(enterSessionRequest.SessionId) && x.State.Equals(SessionState.Preparing));
             if (enteringSession == null)
-                return BadRequest();
+                return NotFound();
             Db.Sessions.Update(enteringSession);
             UserDb.SessionId = enteringSession.Id;
             enteringSession.Players.Add(player);
-            return Ok(enteringSession);
+            return Ok();
         }
 
+        /// <summary>
+        ///     Возвращает массив игроков из текущей сессии
+        /// </summary>
+        /// <returns>
+        ///    Массив игроков из текущей сессии
+        /// </returns>
+        public ActionResult<Player> GetPlayers()
+        {
+            if (Session == null)
+                return BadRequest();
+            return Ok(Session.Players);
+        }
+
+        /// <summary>
+        ///     Получает новые данные и обновляет плеера
+        /// </summary>
+        /// <param name="newPlayer"></param>
+        public ActionResult UpdatePlayerState([FromBody] InputPlayerModel newPlayer)
+        {
+            UserDb.MyPlayer.Requisites = newPlayer.Requisites;
+            UserDb.MyPlayer.Resources = newPlayer.Resources;
+            return Ok();
+        }
+        
         /// <summary>
         ///     Запускает игровую сессию (меняет в ней 1 аттрибут)
         /// </summary>
@@ -107,11 +130,9 @@ namespace ZavodServer.Controllers
             var deletingSession = await Db.Sessions.FirstOrDefaultAsync(x => x.Id.Equals(sessionId)); 
             if (deletingSession == null)
                 return BadRequest();
-            foreach (var player in deletingSession.Players)
-            {
-                Db.Users.Update(player.User);
-                player.User.SessionId = Guid.Empty;
-            }
+            var sessionUsers = Db.Users.Where(x => x.SessionId.Equals(sessionId));
+            foreach (var user in sessionUsers)
+                user.MyPlayer = null;
             Db.Sessions.Remove(deletingSession);
             return Ok();
         }

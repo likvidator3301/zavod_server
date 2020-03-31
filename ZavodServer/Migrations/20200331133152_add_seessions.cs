@@ -3,48 +3,39 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Models;
 using ZavodServer.Models;
+using Player = ZavodServer.Models.Player;
 
 namespace ZavodServer.Migrations
 {
-    public partial class first : Migration
+    public partial class add_seessions : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Buildings",
+                name: "Bags",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
-                    Type = table.Column<int>(nullable: false),
+                    SessionId = table.Column<Guid>(nullable: false),
+                    GoldCount = table.Column<int>(nullable: false),
                     Position = table.Column<Vector3>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Buildings", x => x.Id);
+                    table.PrimaryKey("PK_Bags", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "DefaultBuildings",
+                name: "Sessions",
                 columns: table => new
                 {
-                    Type = table.Column<int>(nullable: false),
-                    BuildingDto = table.Column<BuildingDb>(type: "jsonb", nullable: true)
+                    Id = table.Column<Guid>(nullable: false),
+                    Players = table.Column<List<Player>>(type: "jsonb", nullable: true),
+                    State = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DefaultBuildings", x => x.Type);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "DefaultUnits",
-                columns: table => new
-                {
-                    Type = table.Column<int>(nullable: false),
-                    UnitDto = table.Column<UnitDb>(type: "jsonb", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DefaultUnits", x => x.Type);
+                    table.PrimaryKey("PK_Sessions", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -52,17 +43,13 @@ namespace ZavodServer.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    PlayerId = table.Column<Guid>(nullable: false),
+                    SessionId = table.Column<Guid>(nullable: false),
+                    Health = table.Column<int>(nullable: false),
                     Position = table.Column<Vector3>(type: "jsonb", nullable: true),
-                    Rotation = table.Column<Vector3>(type: "jsonb", nullable: true),
+                    RotationInEulerAngle = table.Column<Vector3>(type: "jsonb", nullable: true),
                     Type = table.Column<int>(nullable: false),
-                    AttackDamage = table.Column<float>(nullable: false),
-                    AttackDelay = table.Column<float>(nullable: false),
-                    AttackRange = table.Column<float>(nullable: false),
-                    Defense = table.Column<float>(nullable: false),
-                    MoveSpeed = table.Column<float>(nullable: false),
-                    MaxHp = table.Column<float>(nullable: false),
-                    CurrentHp = table.Column<float>(nullable: false),
-                    LastAttackTime = table.Column<float>(nullable: false)
+                    Requisites = table.Column<Dictionary<string, string>>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -75,8 +62,8 @@ namespace ZavodServer.Migrations
                 {
                     Email = table.Column<string>(nullable: false),
                     Id = table.Column<Guid>(nullable: false),
-                    Units = table.Column<List<Guid>>(nullable: true),
-                    Buildings = table.Column<List<Guid>>(nullable: true)
+                    SessionId = table.Column<Guid>(nullable: false),
+                    MyPlayer = table.Column<Player>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -87,13 +74,10 @@ namespace ZavodServer.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Buildings");
+                name: "Bags");
 
             migrationBuilder.DropTable(
-                name: "DefaultBuildings");
-
-            migrationBuilder.DropTable(
-                name: "DefaultUnits");
+                name: "Sessions");
 
             migrationBuilder.DropTable(
                 name: "Units");

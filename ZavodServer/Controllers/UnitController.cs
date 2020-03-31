@@ -26,20 +26,37 @@ namespace ZavodServer.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<UnitDb>> GetAll()
         {
+            if (Session == null)
+                return BadRequest();
             IEnumerable<UnitDb> result = Db.Units.Where(x => x.SessionId.Equals(Session.Id));
             return Ok(result);
         }
-
+        
         /// <summary>
-        ///     Returns all default units, like templates
+        ///     Update unit in db
         /// </summary>
-        /// <returns>All default units, or empty list when no default units</returns>
-        /// <response code="200">Returns all default units</response>
-        [HttpGet("default")]
-        public ActionResult<IEnumerable<DefaultUnitDb>> GetAllDefaultUnits()
+        /// <returns>Updated unit</returns>
+        /// <response code="200">Returns updated unit</response>
+        /// <response code="404">If unit not found in db</response>
+        [HttpPut]
+        public async Task<ActionResult> UpdateUnit([FromBody] UnitDb unitDto)
         {
-            IEnumerable<DefaultUnitDb> result = Db.DefaultUnits.Select(x => x);
-            return Ok(result);
+            if (Session == null)
+                return BadRequest();
+            if (await Db.Units.FirstOrDefaultAsync(x =>
+                x.Id.Equals(unitDto.Id) && x.SessionId.Equals(Session.Id) && x.PlayerId.Equals(UserDb.Id)) == null)
+            {
+                unitDto.Health = UnitDb.GetMaxHpFromType(unitDto.Type);
+                unitDto.PlayerId = UserDb.MyPlayer.Id;
+                Db.Units.Add(unitDto);
+                return Ok();
+            }
+            var updatingUnit = await Db.Units.FirstOrDefaultAsync(x => x.Id == unitDto.Id);
+            if (updatingUnit == null)
+                return NotFound(unitDto);
+            Db.Units.Update(updatingUnit);
+            updatingUnit.Copy(unitDto);
+            return Ok();
         }
 
         /// <summary>
@@ -57,81 +74,23 @@ namespace ZavodServer.Controllers
         }
 
         /// <summary>
-        ///     Returns distance between {firstUnitId}/{secondUnitId}
-        /// </summary>
-        /// <returns>Distance between objects</returns>
-        /// <response code="200">Returns the distance between units</response>
-        /// <response code="404">If unit not found in db</response>
-        [HttpGet("{firstUnitId}/{secondUnitId}")]
-        public async Task<ActionResult<float>> GetDistanceById([FromRoute] Guid firstUnitId, Guid secondUnitId)
-        {
-            var firstUnitPosition = (await Db.Units.FirstOrDefaultAsync(x => x.Id == firstUnitId))?.Position;
-            var secondUnitPosition = (await Db.Units.FirstOrDefaultAsync(x => x.Id == secondUnitId))?.Position;
-            if (firstUnitPosition == null || secondUnitPosition == null )
-                return NotFound("Not found units");
-            return Ok(Vector3.Distance(firstUnitPosition, secondUnitPosition));
-        }
-
-        /// <summary>
-        ///     Create unit and save in db
-        /// </summary>
-        /// <returns>Created unit</returns>
-        /// <response code="200">Returns created unit</response>
-        [HttpPost]
-        public async Task<ActionResult<UnitDb>> CreateUnit([FromBody] CreateUnitDto createUnit)
-        {
-            if (Session == null)
-                return BadRequest();
-            var unitDto = (await Db.DefaultUnits.FirstOrDefaultAsync(x => x.Type == createUnit.UnitType))?.UnitDto;
-            if (unitDto == null)
-                return NotFound(createUnit.UnitType);
-            unitDto.Id = Guid.NewGuid();
-            unitDto.Position = new Vector3(createUnit.Position.X, createUnit.Position.Y, createUnit.Position.Z);
-            unitDto.OwnerId = UserDb.Id;
-            unitDto.SessionId = Session.Id;
-            Db.Units.Add(unitDto);
-            return Ok(unitDto);
-        }
-
-        /// <summary>
-        ///     Update unit in db
-        /// </summary>
-        /// <returns>Updated unit</returns>
-        /// <response code="200">Returns updated unit</response>
-        /// <response code="404">If unit not found in db</response>
-        [HttpPut]
-        public async Task<ActionResult<UnitDb>> UpdateUnit([FromBody] UnitDb unitDto)
-        {
-            if (Session == null)
-                return BadRequest();
-            if (await Db.Units.FirstOrDefaultAsync(x => 
-                x.Id.Equals(unitDto.Id) && x.SessionId.Equals(Session.Id) && x.OwnerId.Equals(UserDb.Id)) == null)
-                return BadRequest();
-            var updatingUnit = await Db.Units.FirstOrDefaultAsync(x => x.Id == unitDto.Id);
-            if (updatingUnit == null)
-                return NotFound(unitDto);
-            Db.Units.Update(updatingUnit);
-            updatingUnit.Copy(unitDto);
-            return Ok(updatingUnit);
-        }
-
-        /// <summary>
         ///     Delete unit from db
         /// </summary>
         /// <returns>Deleted unit</returns>
         /// <response code="204">Returns deleted unit</response>
         /// <response code="404">If unit not found in db</response>
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<Guid>> DeleteUnit([FromRoute] Guid id)
+        [HttpPost("{id}")]
+        public async Task<ActionResult<Guid>> DestroyUnit([FromRoute] Guid id)
         {
             if (Session == null)
                 return BadRequest();
             var unit = await Db.Units.FirstOrDefaultAsync(x =>
-                x.Id.Equals(id) && x.SessionId.Equals(Session.Id) && x.OwnerId.Equals(UserDb.Id));
+                x.Id.Equals(id) && x.SessionId.Equals(Session.Id) && x.PlayerId.Equals(UserDb.MyPlayer.Id));
             if (unit == null)
                 return NotFound();
-            Db.Units.Remove(unit);
-            return NoContent();
+            Db.Units.Update(unit);
+            unit.Health = 0;
+            return Ok();
         }
 
         /// <summary>
@@ -146,11 +105,11 @@ namespace ZavodServer.Controllers
         {
             if (Session == null)
                 return BadRequest();
-            var userUnits = Db.Units.Where(x =>
-                x.Id.Equals(UserDb.Id) && x.CurrentHp > 0 && x.SessionId.Equals(Session.Id) && x.OwnerId.Equals(UserDb.Id));
+            var userUnits = Db.Units.Where(x => 
+                x.SessionId.Equals(Session.Id) && x.PlayerId.Equals(UserDb.MyPlayer.Id) && x.Health > 0);
             var defenceUnitsIds = unitAttacks.Select(x => x.DefenceUnitId);
-            var defenceUnits = Db.Units.Where(x =>
-                defenceUnitsIds.Contains(x.Id) && x.CurrentHp > 0);
+            var defenceUnits = Db.Units.Where(x => 
+                defenceUnitsIds.Contains(x.Id) && x.SessionId.Equals(Session.Id) && x.Health > 0);
             var attackResult = new List<ResultOfAttackDto>();
             foreach (var unitAttack in unitAttacks)
             {
@@ -158,53 +117,14 @@ namespace ZavodServer.Controllers
                 var defence = await defenceUnits.FirstOrDefaultAsync(x => x.Id.Equals(unitAttack.DefenceUnitId));
                 if (attack == null || defence == null)
                     continue;
-                if (Vector3.Distance(attack.Position, defence.Position) > attack.AttackRange)
-                {
-                    attackResult.Add(new ResultOfAttackDto {Id = defence.Id, Flag = false, Hp = defence.CurrentHp});
-                    continue;
-                }
-
                 Db.Units.Update(defence);
-                defence.CurrentHp -= attack.AttackDamage;
-                attackResult.Add(new ResultOfAttackDto {Id = defence.Id, Flag = true, Hp = defence.CurrentHp});
+                var attackUnitIdWithDamage = unitAttacks.FirstOrDefault(x => x.AttackUnitId == attack.Id);
+                if(attackUnitIdWithDamage == null)
+                    continue;
+                defence.Health -= attackUnitIdWithDamage.Damage;
+                attackResult.Add(new ResultOfAttackDto {Id = defence.Id, Hp = defence.Health});
             }
-            
             return Ok(attackResult);
-        }
-
-        /// <summary>
-        ///     Move unit to new position
-        /// </summary>
-        /// <param name="moveUnits"></param>
-        /// <returns></returns>
-        [HttpPost("move")]
-        public async Task<ActionResult<IEnumerable<MoveUnitDto>>> MoveUnit([FromBody] params MoveUnitDto[] moveUnits)
-        {
-            if (Session == null)
-                return BadRequest();
-            var userUnits = Db.Units.Where(x =>
-                x.Id.Equals(UserDb.Id) && x.CurrentHp > 0 && x.SessionId.Equals(Session.Id) && x.OwnerId.Equals(UserDb.Id));
-            var badMoveResult = new List<MoveUnitDto>();
-            foreach (var movingUnit in moveUnits)
-            {
-                var movesUnit =
-                    await userUnits.FirstOrDefaultAsync(x =>
-                        x.Id.Equals(movingUnit.Id) && x.SessionId.Equals(Session.Id));
-                if (movesUnit == null)
-                    continue;
-                var oldPosition = movesUnit.Position;
-                var newPosition = movingUnit.NewPosition;
-                if (Vector3.Distance(movesUnit.Position, newPosition) > movesUnit.MoveSpeed)
-                {
-                    badMoveResult.Add(new MoveUnitDto {Id = movesUnit.Id, NewPosition = oldPosition});
-                    continue;
-                }
-
-                Db.Units.Update(movesUnit);
-                movesUnit.Position = newPosition;
-            }
-            
-            return Ok(badMoveResult);
         }
     }
 }

@@ -1,19 +1,17 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Identity;
 using Models;
 
 namespace ZavodServer.Models
 {
-    public class UserDb
+    public class BagDb
     {
+        [Key]
         public Guid Id { get; set; }
         public Guid SessionId { get; set; }
-        [Key]
-        public string Email { get; set; }
+        public int GoldCount { get; set; }
         [Column(TypeName = "jsonb")]
-        public Player MyPlayer { get; set; }
+        public Vector3 Position { get; set; }
     }
 }
