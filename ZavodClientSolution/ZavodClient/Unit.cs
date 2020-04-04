@@ -37,15 +37,14 @@ namespace ZavodClient
             return HttpStatusCode.OK;
         }
         
-        public async Task<List<ServerUnitDto>> SendUnitsState(params ServerUnitDto[] unitsDto)
+        public async Task<HttpStatusCode> SendUnitsState(params ServerUnitDto[] unitsDto)
         {
             var response = await client.PutAsJsonAsync(unitUrl, unitsDto);
             response.EnsureSuccessStatusCode();
-            var updateObjectsDto = await response.Content.ReadAsAsync<List<ServerUnitDto>>();
-            return updateObjectsDto;
+            return HttpStatusCode.OK;
         }
         
-        public async Task<ResultOfAttackDto> AttackUnit(Guid attackUnit, Guid defenceUnit, int damage = 0)
+        public async Task<ResultOfAttackDto> AttackUnit(Guid attackUnit, Guid defenceUnit, int damage)
         {
             var attackUnitDto = new AttackUnitDto
             {
