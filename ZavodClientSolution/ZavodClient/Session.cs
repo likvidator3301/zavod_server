@@ -50,11 +50,20 @@ namespace ZavodClient
             return HttpStatusCode.OK;
         }
 
-        // public Task<List<PlayerDto>> GetPlayers()
-        // {
-        //     var response = await client.
-        // }
-        
-        //public async Task<> SendPlayerState(InputPlayerModel)
+        public async Task<List<PlayerDto>> GetPlayers()
+        {
+            var response = await client.GetAsync($"{sessionUrl}/players/");
+            response.EnsureSuccessStatusCode();
+            var objectDto = await response.Content.ReadAsAsync<List<PlayerDto>>();
+            return objectDto;
+        }
+
+        public async Task<HttpStatusCode> SendPlayerState(InputPlayerModel inputPlayerModel)
+        {
+            var response = await client.PostAsJsonAsync(
+                $"{sessionUrl}/player/", inputPlayerModel);
+            response.EnsureSuccessStatusCode();
+            return HttpStatusCode.OK;
+        }
     }
 }
