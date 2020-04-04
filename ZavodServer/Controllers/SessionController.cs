@@ -76,7 +76,8 @@ namespace ZavodServer.Controllers
         /// <returns>
         ///    Массив игроков из текущей сессии
         /// </returns>
-        public ActionResult<Player> GetPlayers()
+        [HttpGet("players")]
+        public ActionResult<IEnumerable<Player>> GetPlayers()
         {
             if (Session == null)
                 return BadRequest();
@@ -87,6 +88,7 @@ namespace ZavodServer.Controllers
         ///     Получает новые данные и обновляет плеера
         /// </summary>
         /// <param name="newPlayer"></param>
+        [HttpPost("player")]
         public ActionResult UpdatePlayerState([FromBody] InputPlayerModel newPlayer)
         {
             UserDb.MyPlayer.Requisites = newPlayer.Requisites;
