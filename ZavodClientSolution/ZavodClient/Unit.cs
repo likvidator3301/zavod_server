@@ -52,7 +52,7 @@ namespace ZavodClient
                 DefenceUnitId = defenceUnit,
                 Damage = damage
             };
-            var response = await client.PutAsJsonAsync($"{unitUrl}attack/", attackUnitDto);
+            var response = await client.PostAsJsonAsync($"{unitUrl}attack/", attackUnitDto);
             response.EnsureSuccessStatusCode();
             var updateAttackUnitDto = await response.Content.ReadAsAsync<List<ResultOfAttackDto>>();
             return updateAttackUnitDto[0];
@@ -67,11 +67,11 @@ namespace ZavodClient
             });
         }
 
-        public async Task<List<Guid>> SendAttackUnits()
+        public async Task<List<ResultOfAttackDto>> SendAttackUnits()
         {
-            var response = await client.PutAsJsonAsync($"{unitUrl}attack/", attackUnitsDto);
+            var response = await client.PostAsJsonAsync($"{unitUrl}attack/", attackUnitsDto);
             response.EnsureSuccessStatusCode();
-            var updateAttackUnitsDto = await response.Content.ReadAsAsync<List<Guid>>();
+            var updateAttackUnitsDto = await response.Content.ReadAsAsync<List<ResultOfAttackDto>>();
             return updateAttackUnitsDto;
         }
 
