@@ -38,8 +38,8 @@ namespace ZavodServer.Controllers
         /// <returns>Updated unit</returns>
         /// <response code="200">Returns updated unit</response>
         /// <response code="404">If unit not found in db</response>
-        [HttpPut]
-        public async Task<ActionResult> UpdateUnit([FromBody]params UnitDb[] unitDbs)
+        [HttpPost]
+        public async Task<ActionResult> UpdateUnit([FromBody]params InputUnitState[] unitDbs)
         {
             if (Session == null)
                 return BadRequest();
@@ -48,9 +48,14 @@ namespace ZavodServer.Controllers
                 if (await Db.Units.FirstOrDefaultAsync(x =>
                         x.Id.Equals(unitDb.Id) && x.SessionId.Equals(Session.Id) && x.PlayerId.Equals(UserDb.Id)) == null)
                 {
-                    unitDb.Health = UnitDb.GetMaxHpFromType(unitDb.Type);
-                    unitDb.PlayerId = UserDb.MyPlayer.Id;
-                    Db.Units.Add(unitDb);
+                    var newUnit = new UnitDb
+                    {
+                        Id = unitDb.Id, Health = UnitDb.GetMaxHpFromType(unitDb.Type), PlayerId = UserDb.MyPlayer.Id,
+                        Position = unitDb.Position, Requisites = unitDb.Requisites, Type = unitDb.Type,
+                        SessionId = Session.Id,
+                        RotationInEulerAngle = unitDb.RotationInEulerAngle
+                    };
+                    Db.Units.Add(newUnit);
                     continue;
                 }
 
@@ -59,7 +64,9 @@ namespace ZavodServer.Controllers
                     continue;
 
                 Db.Units.Update(updatingUnit);
-                updatingUnit.Copy(unitDb);
+                updatingUnit.Position = unitDb.Position;
+                updatingUnit.RotationInEulerAngle = unitDb.RotationInEulerAngle;
+                updatingUnit.Requisites = unitDb.Requisites;
             }
             return Ok();
         }
@@ -84,8 +91,8 @@ namespace ZavodServer.Controllers
         /// <returns>Deleted unit</returns>
         /// <response code="204">Returns deleted unit</response>
         /// <response code="404">If unit not found in db</response>
-        [HttpPost("{id}")]
-        public async Task<ActionResult<Guid>> DestroyUnit([FromRoute] Guid id)
+        [HttpPost("destroy")]
+        public async Task<ActionResult> DestroyUnit([FromBody] Guid id)
         {
             if (Session == null)
                 return BadRequest();

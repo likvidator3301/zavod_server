@@ -66,6 +66,7 @@ namespace ZavodServer.Controllers
                 return NotFound();
             Db.Sessions.Update(enteringSession);
             UserDb.SessionId = enteringSession.Id;
+            UserDb.MyPlayer = player;
             enteringSession.Players.Add(player);
             return Ok();
         }
@@ -126,16 +127,26 @@ namespace ZavodServer.Controllers
         /// <returns>
         ///    Возвращает статус удалилось ли
         /// </returns>
-        [HttpDelete]
-        public async Task<ActionResult> DeleteSession([FromBody] Guid sessionId)
+        [HttpDelete("{sessionId}")]
+        public async Task<ActionResult> DeleteSession([FromRoute] Guid sessionId)
         {
             var deletingSession = await Db.Sessions.FirstOrDefaultAsync(x => x.Id.Equals(sessionId)); 
             if (deletingSession == null)
                 return BadRequest();
             var sessionUsers = Db.Users.Where(x => x.SessionId.Equals(sessionId));
+            var usersId = await sessionUsers.Select(x => x).ToListAsync();
+            foreach (var userId in usersId)
+            {
+                var units = await Db.Units.Where(x => x.PlayerId.Equals(userId.MyPlayer.Id)).ToListAsync();
+                Db.Units.RemoveRange(units);
+            }
             foreach (var user in sessionUsers)
+            {
                 user.MyPlayer = null;
+                user.SessionId = Guid.Empty;
+            }
             Db.Sessions.Remove(deletingSession);
+            await Db.SaveChangesAsync();
             return Ok();
         }
     }

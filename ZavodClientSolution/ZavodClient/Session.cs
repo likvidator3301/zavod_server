@@ -45,7 +45,7 @@ namespace ZavodClient
         public async Task<HttpStatusCode> EnterSessions(EnterSessionRequest enterSessionRequest)
         {
             var response = await client.PostAsJsonAsync(
-                $"{sessionUrl}/enter/", enterSessionRequest);
+                $"{sessionUrl}enter/", enterSessionRequest);
             response.EnsureSuccessStatusCode();
             return HttpStatusCode.OK;
         }
@@ -61,7 +61,15 @@ namespace ZavodClient
         public async Task<HttpStatusCode> SendPlayerState(InputPlayerModel inputPlayerModel)
         {
             var response = await client.PostAsJsonAsync(
-                $"{sessionUrl}/player/", inputPlayerModel);
+                $"{sessionUrl}player/", inputPlayerModel);
+            response.EnsureSuccessStatusCode();
+            return HttpStatusCode.OK;
+        }
+        
+        public async Task<HttpStatusCode> DeleteSession(Guid sessionId)
+        {
+            var response = await client.DeleteAsync(
+                $"{sessionUrl}{sessionId}");
             response.EnsureSuccessStatusCode();
             return HttpStatusCode.OK;
         }

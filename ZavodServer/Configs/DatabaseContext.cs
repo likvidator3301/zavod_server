@@ -6,10 +6,10 @@ namespace ZavodServer
 {
     public class DatabaseContext : DbContext
     {
-        public DbSet<UnitDb> Units { get; }
-        public DbSet<UserDb> Users { get; }
-        public DbSet<SessionDb> Sessions { get; }
-        public DbSet<BagDb> Bags { get; }
+        public DbSet<UnitDb> Units { get; set; }
+        public DbSet<UserDb> Users { get; set; }
+        public DbSet<SessionDb> Sessions { get; set; }
+        public DbSet<BagDb> Bags { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

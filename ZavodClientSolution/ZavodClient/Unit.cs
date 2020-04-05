@@ -32,14 +32,14 @@ namespace ZavodClient
         
         public async Task<HttpStatusCode> DestroyUnit(Guid id)
         {
-            var response = await client.DeleteAsync($"{unitUrl}{id.ToString()}");
+            var response = await client.PostAsJsonAsync($"{unitUrl}destroy/", id);
             response.EnsureSuccessStatusCode();
             return HttpStatusCode.OK;
         }
         
         public async Task<HttpStatusCode> SendUnitsState(params InputUnitState[] unitsDto)
         {
-            var response = await client.PutAsJsonAsync(unitUrl, unitsDto);
+            var response = await client.PostAsJsonAsync(unitUrl, unitsDto);
             response.EnsureSuccessStatusCode();
             return HttpStatusCode.OK;
         }
@@ -52,10 +52,12 @@ namespace ZavodClient
                 DefenceUnitId = defenceUnit,
                 Damage = damage
             };
-            var response = await client.PostAsJsonAsync($"{unitUrl}attack/", attackUnitDto);
+            var response = await client.PostAsJsonAsync($"{unitUrl}attack/", new[] {attackUnitDto});
             response.EnsureSuccessStatusCode();
             var updateAttackUnitDto = await response.Content.ReadAsAsync<List<ResultOfAttackDto>>();
-            return updateAttackUnitDto[0];
+            if(updateAttackUnitDto.Count > 0)
+                return updateAttackUnitDto[0];
+            return null;
         }
         
         public void AddUnitsToAttack(Guid attackUnit, Guid defenceUnit)
@@ -88,14 +90,6 @@ namespace ZavodClient
             var response = await client.GetAsync($"{unitUrl}{firstUnitId.ToString()}/{secondUnitId.ToString()}");
             response.EnsureSuccessStatusCode();
             var objectDto = await response.Content.ReadAsAsync<float>();
-            return objectDto;
-        }
-        
-        public async Task<OutputUnitState> CreateUnit(InputUnitState createUnitDto)
-        {
-            var response = await client.PostAsJsonAsync(
-                unitUrl, createUnitDto);
-            var objectDto = await response.Content.ReadAsAsync<OutputUnitState>();
             return objectDto;
         }
     }

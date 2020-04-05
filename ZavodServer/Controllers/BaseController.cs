@@ -32,11 +32,16 @@ namespace ZavodServer.Controllers
             context.HttpContext.Request.Headers.TryGetValue("token", out var token);
             var email = Cache.LocalCache.Get<string>(token); //хранить объект с expirationDate
 
-            UserDb = await Db.Users.FirstAsync(u => u.Email == email);
+            UserDb = await Db.Users.FirstAsync(u => u.Email.Equals(email));
             Session = await Db.Sessions.FirstOrDefaultAsync(x => x.Id.Equals(UserDb.SessionId));
             await next();
-            if (Session != null)
-                Session.Players.First(x => x.Id.Equals(UserDb.MyPlayer.Id)).LastTimeActivity = DateTimeOffset.Now;
+            if (Session != null && UserDb.MyPlayer != null)
+            {
+                var player = Session.Players.FirstOrDefault(x => x.Id.Equals(UserDb.MyPlayer.Id));
+                if(player != null)
+                    player.LastTimeActivity = DateTimeOffset.Now;
+            }
+
             await Db.SaveChangesAsync();
         }
     }

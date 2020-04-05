@@ -138,6 +138,7 @@ namespace ZavodServer.Controllers
                 return user;
             user = new UserDb{Email = email, Id = Guid.NewGuid(), SessionId = Guid.Empty};
             db.Users.Add(user);
+            await db.SaveChangesAsync();
             return user;
         }
 
