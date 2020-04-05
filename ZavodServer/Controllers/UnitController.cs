@@ -39,23 +39,28 @@ namespace ZavodServer.Controllers
         /// <response code="200">Returns updated unit</response>
         /// <response code="404">If unit not found in db</response>
         [HttpPut]
-        public async Task<ActionResult> UpdateUnit([FromBody] UnitDb unitDto)
+        public async Task<ActionResult> UpdateUnit([FromBody]params UnitDb[] unitDbs)
         {
             if (Session == null)
                 return BadRequest();
-            if (await Db.Units.FirstOrDefaultAsync(x =>
-                x.Id.Equals(unitDto.Id) && x.SessionId.Equals(Session.Id) && x.PlayerId.Equals(UserDb.Id)) == null)
+            foreach (var unitDb in unitDbs)
             {
-                unitDto.Health = UnitDb.GetMaxHpFromType(unitDto.Type);
-                unitDto.PlayerId = UserDb.MyPlayer.Id;
-                Db.Units.Add(unitDto);
-                return Ok();
+                if (await Db.Units.FirstOrDefaultAsync(x =>
+                        x.Id.Equals(unitDb.Id) && x.SessionId.Equals(Session.Id) && x.PlayerId.Equals(UserDb.Id)) == null)
+                {
+                    unitDb.Health = UnitDb.GetMaxHpFromType(unitDb.Type);
+                    unitDb.PlayerId = UserDb.MyPlayer.Id;
+                    Db.Units.Add(unitDb);
+                    continue;
+                }
+
+                var updatingUnit = await Db.Units.FirstOrDefaultAsync(x => x.Id == unitDb.Id);
+                if (updatingUnit == null)
+                    continue;
+
+                Db.Units.Update(updatingUnit);
+                updatingUnit.Copy(unitDb);
             }
-            var updatingUnit = await Db.Units.FirstOrDefaultAsync(x => x.Id == unitDto.Id);
-            if (updatingUnit == null)
-                return NotFound(unitDto);
-            Db.Units.Update(updatingUnit);
-            updatingUnit.Copy(unitDto);
             return Ok();
         }
 
