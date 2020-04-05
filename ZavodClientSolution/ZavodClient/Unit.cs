@@ -14,9 +14,7 @@ namespace ZavodClient
         
         private static HttpClient client;
         private static string unitUrl;
-
         private static List<AttackUnitDto> attackUnitsDto = new List<AttackUnitDto>();
-        private static List<MoveUnitDto> moveUnitsDto = new List<MoveUnitDto>();
 
         public Unit(string baseUrl)
         {
@@ -24,6 +22,42 @@ namespace ZavodClient
             unitUrl = baseUrl + "/unit/";
         }
 
+        public async Task<List<OutputUnitState>> GetAllUnitStates()
+        {
+            var response = await client.GetAsync(unitUrl);
+            response.EnsureSuccessStatusCode();
+            var objectsDto = await response.Content.ReadAsAsync<List<OutputUnitState>>();
+            return objectsDto;
+        }
+        
+        public async Task<HttpStatusCode> DestroyUnit(Guid id)
+        {
+            var response = await client.DeleteAsync($"{unitUrl}{id.ToString()}");
+            response.EnsureSuccessStatusCode();
+            return HttpStatusCode.OK;
+        }
+        
+        public async Task<HttpStatusCode> SendUnitsState(params InputUnitState[] unitsDto)
+        {
+            var response = await client.PutAsJsonAsync(unitUrl, unitsDto);
+            response.EnsureSuccessStatusCode();
+            return HttpStatusCode.OK;
+        }
+        
+        public async Task<ResultOfAttackDto> AttackUnit(Guid attackUnit, Guid defenceUnit, int damage)
+        {
+            var attackUnitDto = new AttackUnitDto
+            {
+                AttackUnitId = attackUnit,
+                DefenceUnitId = defenceUnit,
+                Damage = damage
+            };
+            var response = await client.PostAsJsonAsync($"{unitUrl}attack/", attackUnitDto);
+            response.EnsureSuccessStatusCode();
+            var updateAttackUnitDto = await response.Content.ReadAsAsync<List<ResultOfAttackDto>>();
+            return updateAttackUnitDto[0];
+        }
+        
         public void AddUnitsToAttack(Guid attackUnit, Guid defenceUnit)
         {
             attackUnitsDto.Add(new AttackUnitDto()
@@ -32,37 +66,20 @@ namespace ZavodClient
                 DefenceUnitId = defenceUnit
             });
         }
-        
-        public void AddUnitsToMove(Guid id, Vector3 newPosition)
+
+        public async Task<List<ResultOfAttackDto>> SendAttackUnits()
         {
-            moveUnitsDto.Add(new MoveUnitDto()
-            {
-                Id = id,
-                NewPosition = newPosition
-            });
+            var response = await client.PostAsJsonAsync($"{unitUrl}attack/", attackUnitsDto);
+            response.EnsureSuccessStatusCode();
+            var updateAttackUnitsDto = await response.Content.ReadAsAsync<List<ResultOfAttackDto>>();
+            return updateAttackUnitsDto;
         }
 
-        public async Task<List<ServerUnitDto>> GetAll()
-        {
-            var response = await client.GetAsync(unitUrl);
-            response.EnsureSuccessStatusCode();
-            var objectsDto = await response.Content.ReadAsAsync<List<ServerUnitDto>>();
-            return objectsDto;
-        }
-        
-        public async Task<List<DefaultServerUnitDto>> GetAllDefaultUnits()
-        {
-            var response = await client.GetAsync($"{unitUrl}default");
-            response.EnsureSuccessStatusCode();
-            var objectsDto = await response.Content.ReadAsAsync<List<DefaultServerUnitDto>>();
-            return objectsDto;
-        }
-
-        public async Task<ServerUnitDto> GetUnitById(Guid id)
+        public async Task<OutputUnitState> GetUnitById(Guid id)
         {
             var response = await client.GetAsync($"{unitUrl}{id.ToString()}");
             response.EnsureSuccessStatusCode();
-            var objectDto = await response.Content.ReadAsAsync<ServerUnitDto>();
+            var objectDto = await response.Content.ReadAsAsync<OutputUnitState>();
             return objectDto;
         }
         
@@ -74,49 +91,12 @@ namespace ZavodClient
             return objectDto;
         }
         
-        public async Task<ServerUnitDto> CreateUnit(CreateUnitDto createUnitDto)
+        public async Task<OutputUnitState> CreateUnit(InputUnitState createUnitDto)
         {
             var response = await client.PostAsJsonAsync(
                 unitUrl, createUnitDto);
-            var objectDto = await response.Content.ReadAsAsync<ServerUnitDto>();
+            var objectDto = await response.Content.ReadAsAsync<OutputUnitState>();
             return objectDto;
-        }
-        
-        public async Task<ServerUnitDto> UpdateUnit(ServerUnitDto unitDto)
-        {
-            var response = await client.PutAsJsonAsync(unitUrl, unitDto);
-            response.EnsureSuccessStatusCode();
-            var updateObjectDto = await response.Content.ReadAsAsync<ServerUnitDto>();
-            return updateObjectDto;
-        }
-        
-        public async Task<HttpStatusCode> DeleteUnit(Guid id)
-        {
-            var response = await client.DeleteAsync($"{unitUrl}{id.ToString()}");
-            response.EnsureSuccessStatusCode();
-            return HttpStatusCode.OK;
-        }
-
-        public async Task<List<ResultOfAttackDto>> SendAttackUnits()
-        {
-            if (attackUnitsDto.Count == 0)
-                return new List<ResultOfAttackDto>();
-            var response = await client.PostAsJsonAsync($"{unitUrl}attack/", attackUnitsDto);
-            attackUnitsDto.Clear();
-            response.EnsureSuccessStatusCode();
-            var updateAttackUnitsDto = await response.Content.ReadAsAsync<List<ResultOfAttackDto>>();
-            return updateAttackUnitsDto;
-        }
-
-        public async Task<List<MoveUnitDto>> SendMoveUnits()
-        {
-            if (moveUnitsDto.Count == 0)
-                return new List<MoveUnitDto>();
-            var response = await client.PostAsJsonAsync($"{unitUrl}move/", moveUnitsDto);
-            moveUnitsDto.Clear();
-            response.EnsureSuccessStatusCode();
-            var updateMoveUnitsDto = await response.Content.ReadAsAsync<List<MoveUnitDto>>();
-            return updateMoveUnitsDto;
         }
     }
 }

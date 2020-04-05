@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Models;
@@ -9,52 +10,67 @@ namespace ZavodServer.Models
     {
         [Key] 
         public Guid Id { get; set; }
-        [Column(TypeName = "jsonb")] 
+        public Guid PlayerId { get; set; }
+        public Guid SessionId { get; set; }
+        public int Health { get; set; }
+        [Column(TypeName = "jsonb")]
         public Vector3 Position { get; set; }
-        [Column(TypeName = "jsonb")] 
-        public Vector3 Rotation { get; set; }
+        [Column(TypeName = "jsonb")]
+        public Vector3 RotationInEulerAngle { get; set; }
         public UnitType Type { get; set; }
-        public float AttackDamage { get; set; }
-        public float AttackDelay { get; set; }
-        public float AttackRange { get; set; }
-        public float Defense { get; set; }
-        public float MoveSpeed { get; set; }
-        public float MaxHp { get; set; }
-        public float CurrentHp { get; set; }
-        public float LastAttackTime { get; set; }
+        [Column(TypeName = "jsonb")]
+        public Dictionary<string, string> Requisites { get; set; }
 
         public override string ToString()
         {
             return
                 $"Id: {Id}, Position: x: {Position.X} y: {Position.Y} z: {Position.Z}, " +
-                $"Rotation: x: {Rotation.X} y: {Rotation.Y} z: {Rotation.Z}, Type: {Type}, " +
-                $"AttackDamage: {AttackDamage}, AttackDelay: {AttackDelay}, AttackRange: {AttackRange}, " +
-                $"Defense: {Defense}, MoveSpeed: {MoveSpeed}, MaxHp: {MaxHp}, CurrentHp: {CurrentHp}, " +
-                $"LastAttackTime: {LastAttackTime}";
+                $"Rotation: x: {RotationInEulerAngle.X} y: {RotationInEulerAngle.Y} z: {RotationInEulerAngle.Z}, Type: {Type}, " +
+                $"OwnerId: {PlayerId}, SessionId: {SessionId}";
+
         }
 
         public void Copy(UnitDb unitDto)
         {
             Id = unitDto.Id;
             Position = unitDto.Position;
-            Rotation = unitDto.Rotation;
+            RotationInEulerAngle = unitDto.RotationInEulerAngle;
             Type = unitDto.Type;
-            AttackDamage = unitDto.AttackDamage;
-            AttackDelay = unitDto.AttackDelay;
-            AttackRange = unitDto.AttackRange;
-            Defense = unitDto.Defense;
-            MoveSpeed = unitDto.MoveSpeed;
-            MaxHp = unitDto.MaxHp;
-            CurrentHp = unitDto.CurrentHp;
-            LastAttackTime = unitDto.LastAttackTime;
+            Health = unitDto.Health;
+            PlayerId = unitDto.PlayerId;
+            SessionId = unitDto.SessionId;
+            Requisites = unitDto.Requisites;
         }
-    }
 
-    public class DefaultUnitDb
-    {
-        [Key] 
-        public UnitType Type { get; set; }
-        [Column(TypeName = "jsonb")] 
-        public UnitDb UnitDto { get; set; }
+        public static int GetMaxHpFromType(UnitType unitType)
+        {
+            switch (unitType)
+            {
+                case UnitType.Base:
+                    return DefaultUnitHp.Base;
+                case UnitType.Warrior:
+                    return DefaultUnitHp.Warrior;
+                case UnitType.Runner:
+                    return DefaultUnitHp.Runner;
+                case UnitType.Garage:
+                    return DefaultUnitHp.Garage;
+                case UnitType.Stall:
+                    return DefaultUnitHp.Stall;
+                case UnitType.Tower:
+                    return DefaultUnitHp.Tower;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(unitType), unitType, null);
+            }
+        }
+        
+        private class DefaultUnitHp
+        {
+            public const int Warrior = 100;
+            public const int Runner  = 60;
+            public const int Garage = 200;
+            public const int Stall  = 200;
+            public const int Tower = 150;
+            public const int Base = 350;
+        }
     }
 }

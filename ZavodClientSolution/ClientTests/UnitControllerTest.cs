@@ -33,6 +33,12 @@ namespace ClientTests
             allUnits = await client.GetAll();
             defaultUnits = await client.GetAllDefaultUnits();
         }
+
+        [OneTimeTearDown]
+        public async Task DeleteSession()
+        {
+            
+        }
         
         [Test]
         public async Task CreateUnitTest()

@@ -13,8 +13,8 @@ using ZavodServer.Models;
 namespace ZavodServer.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20200201100603_first")]
-    partial class first
+    [Migration("20200331140521_add_map")]
+    partial class add_map
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -24,47 +24,44 @@ namespace ZavodServer.Migrations
                 .HasAnnotation("ProductVersion", "3.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            modelBuilder.Entity("ZavodServer.Models.BuildingDb", b =>
+            modelBuilder.Entity("ZavodServer.Models.BagDb", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("GoldCount")
+                        .HasColumnType("integer");
+
                     b.Property<Vector3>("Position")
                         .HasColumnType("jsonb");
 
-                    b.Property<int>("Type")
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Bags");
+                });
+
+            modelBuilder.Entity("ZavodServer.Models.SessionDb", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Map>("GameMap")
+                        .HasColumnType("jsonb");
+
+                    b.Property<List<Player>>("Players")
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("State")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Buildings");
-                });
-
-            modelBuilder.Entity("ZavodServer.Models.DefaultBuildingDb", b =>
-                {
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<BuildingDb>("BuildingDto")
-                        .HasColumnType("jsonb");
-
-                    b.HasKey("Type");
-
-                    b.ToTable("DefaultBuildings");
-                });
-
-            modelBuilder.Entity("ZavodServer.Models.DefaultUnitDb", b =>
-                {
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<UnitDb>("UnitDto")
-                        .HasColumnType("jsonb");
-
-                    b.HasKey("Type");
-
-                    b.ToTable("DefaultUnits");
+                    b.ToTable("Sessions");
                 });
 
             modelBuilder.Entity("ZavodServer.Models.UnitDb", b =>
@@ -73,35 +70,23 @@ namespace ZavodServer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<float>("AttackDamage")
-                        .HasColumnType("real");
+                    b.Property<int>("Health")
+                        .HasColumnType("integer");
 
-                    b.Property<float>("AttackDelay")
-                        .HasColumnType("real");
-
-                    b.Property<float>("AttackRange")
-                        .HasColumnType("real");
-
-                    b.Property<float>("CurrentHp")
-                        .HasColumnType("real");
-
-                    b.Property<float>("Defense")
-                        .HasColumnType("real");
-
-                    b.Property<float>("LastAttackTime")
-                        .HasColumnType("real");
-
-                    b.Property<float>("MaxHp")
-                        .HasColumnType("real");
-
-                    b.Property<float>("MoveSpeed")
-                        .HasColumnType("real");
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
 
                     b.Property<Vector3>("Position")
                         .HasColumnType("jsonb");
 
-                    b.Property<Vector3>("Rotation")
+                    b.Property<Dictionary<string, string>>("Requisites")
                         .HasColumnType("jsonb");
+
+                    b.Property<Vector3>("RotationInEulerAngle")
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
@@ -116,14 +101,14 @@ namespace ZavodServer.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("text");
 
-                    b.Property<List<Guid>>("Buildings")
-                        .HasColumnType("uuid[]");
-
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<List<Guid>>("Units")
-                        .HasColumnType("uuid[]");
+                    b.Property<Player>("MyPlayer")
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Email");
 

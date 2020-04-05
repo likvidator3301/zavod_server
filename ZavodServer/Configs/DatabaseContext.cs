@@ -6,11 +6,10 @@ namespace ZavodServer
 {
     public class DatabaseContext : DbContext
     {
-        public DbSet<UnitDb> Units { get; set; }
-        public DbSet<DefaultUnitDb> DefaultUnits { get; set; }
-        public DbSet<BuildingDb> Buildings { get; set; }
-        public DbSet<DefaultBuildingDb> DefaultBuildings { get; set; }
-        public DbSet<UserDb> Users { get; set; }
+        public DbSet<UnitDb> Units { get; }
+        public DbSet<UserDb> Users { get; }
+        public DbSet<SessionDb> Sessions { get; }
+        public DbSet<BagDb> Bags { get; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -18,9 +17,6 @@ namespace ZavodServer
             var config = dbConfig.ReadConfig();
             if (config != null)
                 optionsBuilder.UseNpgsql(config);
-//            else
-//                optionsBuilder.UseNpgsql(
-//                    "host=localhost;port=5432;database=default;user id=default;password=default;");
         }
     }
 }

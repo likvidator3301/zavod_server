@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -16,7 +18,7 @@ namespace ZavodServer.Controllers
     public class BaseController : Controller
     {
         protected UserDb UserDb { get; private set; }
-        protected SessionDb Session { get; }
+        protected SessionDb Session { get; private set; }
 
         protected readonly DatabaseContext Db;
 
@@ -31,7 +33,11 @@ namespace ZavodServer.Controllers
             var email = Cache.LocalCache.Get<string>(token); //хранить объект с expirationDate
 
             UserDb = await Db.Users.FirstAsync(u => u.Email == email);
+            Session = await Db.Sessions.FirstOrDefaultAsync(x => x.Id.Equals(UserDb.SessionId));
             await next();
+            if (Session != null)
+                Session.Players.First(x => x.Id.Equals(UserDb.MyPlayer.Id)).LastTimeActivity = DateTimeOffset.Now;
+            await Db.SaveChangesAsync();
         }
     }
 }
