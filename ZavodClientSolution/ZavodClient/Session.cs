@@ -65,6 +65,14 @@ namespace ZavodClient
             response.EnsureSuccessStatusCode();
             return HttpStatusCode.OK;
         }
+
+        public async Task<Guid> StartSession(Guid sessionId)
+        {
+            var response = await client.PostAsJsonAsync(
+                $"{sessionUrl}start/", sessionId);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsAsync<Guid>();
+        }
         
         public async Task<HttpStatusCode> DeleteSession(Guid sessionId)
         {

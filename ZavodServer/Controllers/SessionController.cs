@@ -107,7 +107,7 @@ namespace ZavodServer.Controllers
         ///    Сессию с игроками и изменённым статусом
         /// </returns>
         [HttpPost("start")]
-        public async Task<ActionResult<SessionDb>> StartSession([FromQuery] Guid sessionId)
+        public async Task<ActionResult<Guid>> StartSession([FromBody] Guid sessionId)
         {
             var enteringSession = await Db.Sessions.FirstOrDefaultAsync(x => 
                 x.Id.Equals(sessionId) && x.State.Equals(SessionState.Preparing));
@@ -115,7 +115,7 @@ namespace ZavodServer.Controllers
                 return BadRequest();
             Db.Sessions.Update(enteringSession);
             enteringSession.State = SessionState.InGame;
-            return Ok(enteringSession);
+            return Ok(enteringSession.Id);
         }
 
         /// <summary>
