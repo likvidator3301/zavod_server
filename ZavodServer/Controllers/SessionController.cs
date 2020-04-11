@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -41,12 +42,12 @@ namespace ZavodServer.Controllers
         ///     Создаёт новую сессию
         /// </summary>
         [HttpPost]
-        public ActionResult CreateNewSession([FromBody]string mapName)
+        public ActionResult<Guid> CreateNewSession([FromBody]string mapName)
         {
             var newSession = new SessionDb { Id = Guid.NewGuid(), State = SessionState.Preparing, 
                 Players = new List<Player>(), GameMap = MapContainer.maps.First(x=>x.Name.Equals(mapName))};
             Db.Sessions.Add(newSession);
-            return Ok();
+            return Ok(newSession.Id);
         }
 
         /// <summary>
@@ -107,7 +108,7 @@ namespace ZavodServer.Controllers
         ///    Сессию с игроками и изменённым статусом
         /// </returns>
         [HttpPost("start")]
-        public async Task<ActionResult<Guid>> StartSession([FromBody] Guid sessionId)
+        public async Task<ActionResult<HttpStatusCode>> StartSession([FromBody] Guid sessionId)
         {
             var enteringSession = await Db.Sessions.FirstOrDefaultAsync(x => 
                 x.Id.Equals(sessionId) && x.State.Equals(SessionState.Preparing));
@@ -115,7 +116,7 @@ namespace ZavodServer.Controllers
                 return BadRequest();
             Db.Sessions.Update(enteringSession);
             enteringSession.State = SessionState.InGame;
-            return Ok(enteringSession.Id);
+            return Ok(enteringSession);
         }
 
         /// <summary>
