@@ -34,7 +34,7 @@ namespace ZavodServer.Controllers
         /// <param name="id">Id сессии, которую хотите получить</param>
         /// <returns>Сессию с Id переданным в запросе</returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<SessionDb>> GetSession([FromQuery] Guid id)
+        public async Task<ActionResult<SessionDb>> GetSession([FromRoute] Guid id)
         {
             var result = await Db.Sessions.FirstOrDefaultAsync(x => x.Id.Equals(id));
             if (result == null)
