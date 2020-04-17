@@ -46,7 +46,7 @@ namespace ZavodServer.Controllers
             foreach (var unitDb in unitDbs)
             {
                 if (await Db.Units.FirstOrDefaultAsync(x =>
-                        x.Id.Equals(unitDb.Id) && x.SessionId.Equals(Session.Id) && x.PlayerId.Equals(UserDb.Id)) == null)
+                        x.Id.Equals(unitDb.Id) && x.SessionId.Equals(Session.Id) && x.PlayerId.Equals(UserDb.MyPlayer.Id)) == null)
                 {
                     var newUnit = new UnitDb
                     {
