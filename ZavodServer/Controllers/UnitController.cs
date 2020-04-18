@@ -43,10 +43,11 @@ namespace ZavodServer.Controllers
         {
             if (Session == null)
                 return BadRequest();
+            
             foreach (var unitDb in unitDbs)
             {
-                if (await Db.Units.FirstOrDefaultAsync(x =>
-                        x.Id.Equals(unitDb.Id) && x.SessionId.Equals(Session.Id) && x.PlayerId.Equals(UserDb.MyPlayer.Id)) == null)
+                var unit = await Db.Units.FirstOrDefaultAsync(x => x.Id.Equals(unitDb.Id));
+                if (unit == null)
                 {
                     var newUnit = new UnitDb
                     {
@@ -56,17 +57,14 @@ namespace ZavodServer.Controllers
                         RotationInEulerAngle = unitDb.RotationInEulerAngle
                     };
                     Db.Units.Add(newUnit);
-                    continue;
                 }
-
-                var updatingUnit = await Db.Units.FirstOrDefaultAsync(x => x.Id == unitDb.Id);
-                if (updatingUnit == null)
-                    continue;
-
-                Db.Units.Update(updatingUnit);
-                updatingUnit.Position = unitDb.Position;
-                updatingUnit.RotationInEulerAngle = unitDb.RotationInEulerAngle;
-                updatingUnit.Requisites = unitDb.Requisites;
+                else
+                {
+                    Db.Units.Update(unit);
+                    unit.Position = unitDb.Position;
+                    unit.RotationInEulerAngle = unitDb.RotationInEulerAngle;
+                    unit.Requisites = unitDb.Requisites;
+                }
             }
             return Ok();
         }
