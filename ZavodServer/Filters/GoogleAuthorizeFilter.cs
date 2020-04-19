@@ -15,8 +15,8 @@ namespace ZavodServer.Filters
         /// <param name="context"></param>
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            if(!IsTokenFresh(context))
-             context.Result = new UnauthorizedResult();
+            if(!IsTokenFresh(context)) 
+                context.Result = new UnauthorizedResult();
         }
 
         private static bool IsTokenFresh(ActionContext context)

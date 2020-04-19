@@ -22,10 +22,9 @@ namespace ZavodServer.Controllers
         ///    Список всех существующих на сервере игровых сессий
         /// </returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<SessionDb>>> GetAllSessions()
+        public ActionResult<IEnumerable<SessionDb>> GetAllSessions()
         {
-            var sessions = await Db.Sessions.Select(x => x).ToListAsync();
-            return Ok(sessions);
+            return Ok(Db.Sessions.ToList());
         } 
 
         /// <summary>
