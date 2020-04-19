@@ -51,7 +51,7 @@ namespace ZavodServer
                     options.ClientId = authConfig.ReadConfig().client_id;
                     options.ClientSecret = authConfig.ReadConfig().client_secret;
                 });
-            services.AddSingleton(x => new DatabaseContext());
+            services.AddDbContext<DatabaseContext>(ServiceLifetime.Transient);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
