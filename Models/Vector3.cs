@@ -22,6 +22,11 @@ namespace Models
             Z = z;
         }
 
+        public override string ToString()
+        {
+            return $"X:{X}, Y:{Y}, Z:{Z}";
+        }
+
         public static Vector3 operator +(Vector3 a, Vector3 b)
         {
             return new Vector3(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
