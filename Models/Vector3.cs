@@ -21,6 +21,11 @@ namespace Models
             Y = y;
             Z = z;
         }
+
+        public static Vector3 operator +(Vector3 a, Vector3 b)
+        {
+            return new Vector3(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+        }
         
         public static float Distance(Vector3 first, Vector3 second)
         {

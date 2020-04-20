@@ -33,8 +33,7 @@ namespace ZavodClient
         {
             if (IsRegistered)
             {
-                var token = (await GetNewAccessToken(ReadRefreshToken())).access_token;
-                client.DefaultRequestHeaders.Add("token", token);
+                await GetNewAccessToken(ReadRefreshToken());
                 var response = await client.GetAsync(authUrl);
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadAsAsync<ServerUserDto>();
@@ -74,6 +73,8 @@ namespace ZavodClient
             var response = await client.PostAsJsonAsync($"{userUrl}refreshToken", refreshToken);
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadAsAsync<AccessTokenDto>();
+            if(client.DefaultRequestHeaders.TryGetValues("token", out _))
+                client.DefaultRequestHeaders.Remove("token");
             client.DefaultRequestHeaders.Add("token", result.access_token);
             return result;
         }

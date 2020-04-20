@@ -55,7 +55,7 @@ namespace ClientTests
                 RotationInEulerAngle = new Vector3()
             };
             await unitClient.SendUnitsState(newUnit);
-            var result = unitClient.GetUnitById(newUnit.Id);
+            var result = await unitClient.GetUnitById(newUnit.Id);
             result.Should().NotBeNull();
         }
         
@@ -90,26 +90,36 @@ namespace ClientTests
         [Test]
         public async Task UpdateExistTest()
         {
-            foreach (var unit in allUnits)
+            var newUnit = new InputUnitState
             {
-                unit.Position = new Vector3(1,2,3);
-                var updatedUnit = await unitClient.SendUnitsState(new InputUnitState{Id = unit.Id, 
-                    Position = unit.Position, Requisites = unit.Requisites, RotationInEulerAngle = unit.RotationInEulerAngle, Type =unit.Type});
-                unit.Should().BeEquivalentTo(updatedUnit);
-            }
+                Position = new Vector3 {X = 15, Y = 25, Z = 10},
+                Id = Guid.NewGuid(), Requisites = new Dictionary<string, string>(), Type = UnitType.Runner,
+                RotationInEulerAngle = new Vector3()
+            };
+            await unitClient.SendUnitsState(newUnit);
+            var result = await unitClient.GetUnitById(newUnit.Id);
+            result.Position += new Vector3(1,2,3);
+            var updatedUnit = await unitClient.SendUnitsState(new InputUnitState{Id = result.Id, 
+                Position = result.Position, Requisites = result.Requisites, RotationInEulerAngle = result.RotationInEulerAngle, Type =result.Type});
+            updatedUnit.Should().BeEquivalentTo(HttpStatusCode.OK);
         }
 
         [Test]
         public async Task UpdateNotExistTest()
         {
-            foreach (var unit in allUnits)
+            var newUnit = new InputUnitState
             {
-                unit.Id = Guid.NewGuid();
-                unit.Position = new Vector3(1,2,3);
-                Func<Task> updatedUnit = async () => await unitClient.SendUnitsState(new InputUnitState{Id = unit.Id, 
-                    Position = unit.Position, Requisites = unit.Requisites, RotationInEulerAngle = unit.RotationInEulerAngle, Type =unit.Type});
-                await updatedUnit.Should().ThrowAsync<HttpRequestException>();
-            }
+                Position = new Vector3 {X = 15, Y = 25, Z = 10},
+                Id = Guid.NewGuid(), Requisites = new Dictionary<string, string>(), Type = UnitType.Runner,
+                RotationInEulerAngle = new Vector3()
+            };
+            await unitClient.SendUnitsState(newUnit);
+            var result = await unitClient.GetUnitById(newUnit.Id);
+            result.Id = Guid.NewGuid();
+            result.Position = new Vector3(1,2,3);
+            var updatedUnit = await unitClient.SendUnitsState(new InputUnitState{Id = Guid.NewGuid(), 
+                Position = result.Position, Requisites = result.Requisites, RotationInEulerAngle = result.RotationInEulerAngle, Type =result.Type});
+            updatedUnit.Should().BeEquivalentTo(HttpStatusCode.OK);
         }
 
         [Test]

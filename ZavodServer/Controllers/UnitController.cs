@@ -39,14 +39,14 @@ namespace ZavodServer.Controllers
         /// <response code="200">Returns updated unit</response>
         /// <response code="404">If unit not found in db</response>
         [HttpPost]
-        public async Task<ActionResult> UpdateUnit([FromBody]params InputUnitState[] unitDbs)
+        public ActionResult UpdateUnit([FromBody]params InputUnitState[] unitDbs)
         {
             if (Session == null)
                 return BadRequest();
             
             foreach (var unitDb in unitDbs)
             {
-                var unit = await Db.Units.FirstOrDefaultAsync(x => x.Id.Equals(unitDb.Id));
+                var unit = Db.Units.FirstOrDefault(x => x.Id.Equals(unitDb.Id));
                 if (unit == null)
                 {
                     var newUnit = new UnitDb
@@ -66,6 +66,8 @@ namespace ZavodServer.Controllers
                     unit.Requisites = unitDb.Requisites;
                 }
             }
+
+            Db.SaveChanges();
             return Ok();
         }
 
