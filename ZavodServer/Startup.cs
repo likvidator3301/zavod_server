@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -39,6 +40,7 @@ namespace ZavodServer
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 x.IncludeXmlComments(xmlPath);
+                x.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
             });
             services.AddAuthentication(options =>
                 {
@@ -77,8 +79,6 @@ namespace ZavodServer
             
             app.UseRouting();
                 
-            app.UseHttpsRedirection();
-            
             app.UseAuthentication();
             app.UseAuthorization();
 

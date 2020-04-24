@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Models;
 using ZavodServer.Models;
-using Player = ZavodServer.Models.Player;
 
 namespace ZavodServer.Migrations
 {
-    public partial class add_seessions : Migration
+    public partial class first : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -31,6 +30,7 @@ namespace ZavodServer.Migrations
                 {
                     Id = table.Column<Guid>(nullable: false),
                     Players = table.Column<List<Player>>(type: "jsonb", nullable: true),
+                    GameMap = table.Column<Map>(type: "jsonb", nullable: true),
                     State = table.Column<int>(nullable: false)
                 },
                 constraints: table =>

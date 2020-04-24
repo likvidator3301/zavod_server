@@ -13,8 +13,8 @@ using ZavodServer.Models;
 namespace ZavodServer.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20200331140521_add_map")]
-    partial class add_map
+    [Migration("20200421184214_first")]
+    partial class first
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
