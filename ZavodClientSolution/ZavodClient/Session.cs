@@ -29,6 +29,8 @@ namespace ZavodClient
         public async Task<SessionDto> GetSession(Guid id)
         {
             var response = await client.GetAsync($"{sessionUrl}{id.ToString()}");
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return null;
             response.EnsureSuccessStatusCode();
             var objectDto = await response.Content.ReadAsAsync<SessionDto>();
             return objectDto;
@@ -46,6 +48,14 @@ namespace ZavodClient
         {
             var response = await client.PostAsJsonAsync(
                 $"{sessionUrl}enter/", enterSessionRequest);
+            response.EnsureSuccessStatusCode();
+            return HttpStatusCode.OK;
+        }
+        
+        public async Task<HttpStatusCode> LeaveSession(Guid leaveSessionId)
+        {
+            var response = await client.PostAsJsonAsync(
+                $"{sessionUrl}leave/", leaveSessionId);
             response.EnsureSuccessStatusCode();
             return HttpStatusCode.OK;
         }

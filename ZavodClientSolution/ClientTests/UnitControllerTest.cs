@@ -60,6 +60,13 @@ namespace ClientTests
         }
         
         [Test]
+        public async Task LeaveSession()
+        {
+            var result = await sessionClient.LeaveSession(sessionDto.Id);
+            result.Should().Be(HttpStatusCode.OK);
+        }
+        
+        [Test]
         public async Task GetAllTest()
         {
             var list = await unitClient.GetAllUnitStates();

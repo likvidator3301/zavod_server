@@ -76,6 +76,25 @@ namespace ZavodServer.Controllers
         }
 
         /// <summary>
+        ///     Удаляет из сессии игрока
+        /// </summary>
+        /// <param name="sessionId">
+        ///    Id сессии
+        /// </param>
+        [HttpPost("leave")]
+        public async Task<ActionResult> LeaveSession([FromBody] Guid sessionId)
+        {
+            var leavingSession = await Db.Sessions.FirstOrDefaultAsync(x => x.Id.Equals(sessionId));
+            if (leavingSession == null)
+                return NotFound();
+            Db.Sessions.Update(leavingSession);
+            leavingSession.Players.Remove(UserDb.MyPlayer);
+            UserDb.SessionId = Guid.Empty;
+            UserDb.MyPlayer = null;
+            return Ok();
+        }
+
+        /// <summary>
         ///     Возвращает массив игроков из текущей сессии
         /// </summary>
         /// <returns>
